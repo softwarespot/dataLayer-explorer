@@ -1,0 +1,38 @@
+{
+    "name": "datalayer-explorer",
+    "version": "1.0.0",
+    "description": "An dataLayer explorer",
+    "license": "MIT",
+    "author": "Product Team",
+    "type": "module",
+    "main": "popup.js",
+    "scripts": {
+        "clean:files": "rm -f *crx *.pem *.xpi *.zip",
+        "create": "rm -rf dist/* && mkdir -p dist && cp src/* dist/",
+        "deploy": "npm run make:chrome && npm run make:firefox && npm run make:zip && npm run upload && rm key.pem && rm dataLayer-explorer.crx",
+        "make:chrome": "npm run create && crx pack ./dist --output dataLayer-explorer.crx",
+        "make:firefox": "npm run create && crx pack ./dist --zip-output dataLayer-explorer.zip && cp dataLayer-explorer.zip dataLayer-explorer.xpi",
+        "make:zip": "npm run create && crx pack ./dist --zip-output dataLayer-explorer.zip"
+    },
+    "devDependencies": {
+        "crx": "^5.0.1",
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-config-problems": "^8.0.0",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-json-format": "^2.0.1",
+        "eslint-plugin-n": "^16.6.2",
+        "eslint-plugin-prettier": "^5.2.1",
+        "eslint-plugin-promise": "^6.6.0",
+        "eslint-plugin-security": "^2.1.1",
+        "eslint-plugin-simple-import-sort": "^12.1.1",
+        "eslint-plugin-sonarjs": "^0.25.1",
+        "eslint-plugin-sort-destructure-keys": "^2.0.0",
+        "eslint-plugin-sort-keys-fix": "^1.1.2",
+        "eslint-plugin-unicorn": "^52.0.0",
+        "prettier": "^3.3.3"
+    },
+    "engines": {
+        "node": ">=16.20.2"
+    }
+}

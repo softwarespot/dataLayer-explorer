@@ -1,0 +1,32 @@
+{
+    "name": "dataLayer Explorer",
+    "version": "1.0.0",
+    "manifest_version": 3,
+    "description": "dataLayer Explorer",
+    "icons": {
+        "32": "icon-32x32.png"
+    },
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://*/*"],
+            "js": ["contentscript.js"],
+            "run_at": "document_start"
+        }
+    ],
+    "action": {
+        "default_icon": "icon-32x32.png",
+        "default_popup": "popup.html"
+    },
+    "permissions": [],
+    "host_permissions": ["*://*/*"],
+    "web_accessible_resources": [
+        {
+            "resources": ["contentscript.js", "init.js", "icon-32x32.png"],
+            "matches": ["<all_urls>"]
+        }
+    ]
+}

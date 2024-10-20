@@ -1,0 +1,69 @@
+{
+    "extends": [
+        "eslint:recommended",
+        "problems",
+        // "react-app",
+        "plugin:import/recommended",
+        "plugin:n/recommended",
+        "plugin:security/recommended-legacy",
+        "plugin:sonarjs/recommended",
+        "plugin:prettier/recommended"
+    ],
+    // "parser": "@babel/eslint-parser",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "plugins": [
+        "import",
+        "json-format",
+        "promise",
+        // "react-hooks",
+        "security",
+        "simple-import-sort",
+        "sonarjs",
+        "sort-destructure-keys",
+        "sort-keys-fix",
+        "unicorn"
+    ],
+    "env": {
+        "browser": true,
+        "node": true
+    },
+    "globals": {
+        "chrome": true
+    },
+    "rules": {
+        "prettier/prettier": [
+            "error",
+            {
+                "printWidth": 120,
+                "singleQuote": true,
+                "tabWidth": 4
+            }
+        ],
+        "import/extensions": ["error", "ignorePackages"],
+        "security/detect-object-injection": "off",
+        "simple-import-sort/imports": [
+            "error",
+            {
+                "groups": [
+                    ["^node:"],
+                    ["^react", "^@?\\w"],
+                    ["^(constants)(/.*|$)"],
+                    ["^(api|assets|components|contexts|hooks|interfaces|lib|pages|router|types)(/.*|$)"],
+                    ["^\\u0000"],
+                    ["^\\.\\.(?!/?$)", "^\\.\\./?$"],
+                    ["^\\./(?=.*/)(?!/?$)", "^\\.(?!/?$)", "^\\./?$"],
+                    ["^.+\\.s?css$"]
+                ]
+            }
+        ],
+        "sort-destructure-keys/sort-destructure-keys": "warn",
+        "sort-keys-fix/sort-keys-fix": "warn",
+        "unicorn/prefer-node-protocol": "error"
+    }
+}
