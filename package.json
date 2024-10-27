@@ -1,7 +1,7 @@
 {
     "name": "datalayer-explorer",
     "version": "0.1.0",
-    "description": "dataLayer Explorer is a powerful Chrome extension designed to simplify the analysis of a site's dataLayer for developers and digital marketers. This tool provides real-time insights into dataLayer events, enabling users to effortlessly monitor and inspect event data for informed decision-making.",
+    "description": "dataLayer Explorer is designed to simplify the analysis of a site's dataLayer for developers and digital marketers.",
     "license": "MIT",
     "author": "SoftwareSpot Apps",
     "type": "module",
