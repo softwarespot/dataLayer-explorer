@@ -47,10 +47,11 @@
             case EVENT_DATALAYER_FOUND:
             case EVENT_DATALAYER_NOT_FOUND:
                 state.status = event;
-                sendToBackground(EVENT_SYNC_DATALAYER_STATUS, state);
+                sendStatusToBackground();
                 return true;
             case EVENT_DATALAYER_ENTRY:
                 state.entries.push(JSON.parse(data));
+                sendStatusToBackground();
                 return true;
         }
         return undefined;
@@ -59,10 +60,17 @@
     // Stop flashing of the badge text, when the loading of dataLayer is quick
     setTimeout(() => {
         if (state.status === EVENT_DATALAYER_LOADING) {
-            sendToBackground(EVENT_SYNC_DATALAYER_STATUS, state);
+            sendStatusToBackground();
         }
     }, 250);
     loadScript(chrome.runtime.getURL('init.js'));
+
+    function sendStatusToBackground() {
+        sendToBackground(EVENT_SYNC_DATALAYER_STATUS, {
+            count: state.entries.length,
+            status: state.status,
+        });
+    }
 
     // Utils
 

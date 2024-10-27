@@ -1,5 +1,5 @@
-const COLOR_GREEN = '#27ae60';
-const COLOR_ORANGE = '#e67e22';
+const COLOR_GREEN = '#2e7d32';
+const COLOR_ORANGE = '#ff8c00';
 const COLOR_RED = '#c0392b';
 const COLOR_WHITE = '#ecf0f1';
 
@@ -39,7 +39,7 @@ function syncDataLayerStatus(tab, data) {
                 color: COLOR_ORANGE,
                 tabId: tab.id,
             });
-            chrome.action.setBadgeText({ text: '-', tabId: tab.id });
+            chrome.action.setBadgeText({ text: '...', tabId: tab.id });
             chrome.action.setTitle({
                 title: 'Checking if dataLayer is available on this page...',
                 tabId: tab.id,
@@ -50,7 +50,7 @@ function syncDataLayerStatus(tab, data) {
                 color: COLOR_GREEN,
                 tabId: tab.id,
             });
-            chrome.action.setBadgeText({ text: 'OK', tabId: tab.id });
+            chrome.action.setBadgeText({ text: String(data.count), tabId: tab.id });
             chrome.action.setTitle({
                 title: 'dataLayer is available on this page.',
                 tabId: tab.id,
@@ -61,7 +61,7 @@ function syncDataLayerStatus(tab, data) {
                 color: COLOR_RED,
                 tabId: tab.id,
             });
-            chrome.action.setBadgeText({ text: 'FAIL', tabId: tab.id });
+            chrome.action.setBadgeText({ text: '❌', tabId: tab.id });
             chrome.action.setTitle({
                 title: 'dataLayer is not available on this page.',
                 tabId: tab.id,
