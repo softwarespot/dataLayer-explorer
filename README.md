@@ -7,7 +7,7 @@
 **dataLayer Explorer** is a powerful Chrome extension designed to simplify the analysis of a site's dataLayer for developers and digital marketers. This tool provides real-time insights into dataLayer events, enabling users to effortlessly monitor and inspect event data for informed decision-making.
 
 <div align="center">
-    <img src="./images/app3.png" alt="Extension screenshot">
+    <img src="./images/app1.png" alt="Extension screenshot">
 </div>
 
 ## Features
