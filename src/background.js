@@ -35,10 +35,7 @@ function syncDataLayerStatus(tab, data) {
 
     switch (data.status) {
         case EVENT_DATALAYER_LOADING:
-            chrome.action.setBadgeBackgroundColor({
-                color: COLOR_ORANGE,
-                tabId: tab.id,
-            });
+            chrome.action.setBadgeBackgroundColor({ color: COLOR_ORANGE, tabId: tab.id });
             chrome.action.setBadgeText({ text: '...', tabId: tab.id });
             chrome.action.setTitle({
                 title: 'Checking if dataLayer is available on this page...',
@@ -46,10 +43,7 @@ function syncDataLayerStatus(tab, data) {
             });
             break;
         case EVENT_DATALAYER_FOUND:
-            chrome.action.setBadgeBackgroundColor({
-                color: COLOR_GREEN,
-                tabId: tab.id,
-            });
+            chrome.action.setBadgeBackgroundColor({ color: COLOR_GREEN, tabId: tab.id });
             chrome.action.setBadgeText({ text: String(data.count), tabId: tab.id });
             chrome.action.setTitle({
                 title: 'dataLayer is available on this page.',
@@ -57,10 +51,7 @@ function syncDataLayerStatus(tab, data) {
             });
             break;
         case EVENT_DATALAYER_NOT_FOUND:
-            chrome.action.setBadgeBackgroundColor({
-                color: COLOR_RED,
-                tabId: tab.id,
-            });
+            chrome.action.setBadgeBackgroundColor({ color: COLOR_RED, tabId: tab.id });
             chrome.action.setBadgeText({ text: '❌', tabId: tab.id });
             chrome.action.setTitle({
                 title: 'dataLayer is not available on this page.',
