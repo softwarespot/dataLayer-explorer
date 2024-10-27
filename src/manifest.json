@@ -1,0 +1,35 @@
+{
+    "name": "dataLayer Explorer",
+    "version": "0.1.0",
+    "manifest_version": 3,
+    "description": "dataLayer Explorer is a powerful Chrome extension designed to simplify the analysis of a site's dataLayer for developers and digital marketers. This tool provides real-time insights into dataLayer events, enabling users to effortlessly monitor and inspect event data for informed decision-making.",
+    "icons": {
+        "16": "icon16.png",
+        "32": "icon32.png",
+        "48": "icon48.png",
+        "128": "icon128.png"
+    },
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://*/*"],
+            "js": ["contentscript.js"],
+            "run_at": "document_start"
+        }
+    ],
+    "action": {
+        "default_icon": "icon32.png",
+        "default_popup": "popup.html"
+    },
+    "permissions": [],
+    "host_permissions": ["*://*/*"],
+    "web_accessible_resources": [
+        {
+            "resources": ["init.js"],
+            "matches": ["<all_urls>"]
+        }
+    ]
+}

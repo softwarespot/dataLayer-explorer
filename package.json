@@ -1,0 +1,35 @@
+{
+    "name": "datalayer-explorer",
+    "version": "0.1.0",
+    "description": "dataLayer Explorer is a powerful Chrome extension designed to simplify the analysis of a site's dataLayer for developers and digital marketers. This tool provides real-time insights into dataLayer events, enabling users to effortlessly monitor and inspect event data for informed decision-making.",
+    "license": "MIT",
+    "author": "SoftwareSpot Apps",
+    "type": "module",
+    "main": "src/popup.html",
+    "scripts": {
+        "clean:files": "rm -f *.pem *.zip",
+        "make": "crx pack ./src --zip-output dle.zip && rm ./key.pem",
+        "start": "PORT=8100 node ./scripts/dev_server.js"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.13.0",
+        "crx": "^5.0.1",
+        "eslint": "^9.13.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-n": "^17.11.1",
+        "eslint-plugin-prettier": "^5.2.1",
+        "eslint-plugin-promise": "^7.1.0",
+        "eslint-plugin-security": "^3.0.1",
+        "eslint-plugin-simple-import-sort": "^12.1.1",
+        "eslint-plugin-sonarjs": "^2.0.4",
+        "eslint-plugin-sort-destructure-keys": "^2.0.0",
+        "eslint-plugin-sort-keys-fix": "^1.1.2",
+        "eslint-plugin-unicorn": "^56.0.0",
+        "globals": "^15.11.0",
+        "prettier": "^3.3.3"
+    },
+    "engines": {
+        "node": ">=22"
+    }
+}

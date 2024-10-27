@@ -1,0 +1,245 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>dataLayer Explorer</title>
+
+        <style>
+            /* Mix of https://flatuicolors.com/palette/defo and https://flatuicolors.com/palette/us */
+            :root {
+                --primary-color: #0984e3;
+                --secondary-color: #2d3436;
+                --primary-light-color: #3498db;
+                --light-color: #fff;
+                --light-text-color: #ecf0f1;
+                --dark-text-color: #2d3436;
+            }
+
+            body {
+                outline: 1px solid var(--dark-text-color);
+                color: var(--dark-text-color);
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    Roboto,
+                    'Helvetica Neue',
+                    'Noto Sans',
+                    'Liberation Sans',
+                    Arial,
+                    sans-serif,
+                    'Apple Color Emoji',
+                    'Segoe UI Emoji',
+                    'Segoe UI Symbol',
+                    'Noto Color Emoji';
+                margin: 0;
+                padding: 5px 5px;
+                width: 585px;
+            }
+
+            pre {
+                font-size: 1.4em;
+                margin: 0;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+
+            .btn {
+                background: none;
+                border: none;
+                color: var(--dark-text-color);
+                cursor: pointer;
+                font-size: 1em;
+                padding: 5px;
+                transition: all 0.3s ease;
+            }
+
+            .ga4-icon {
+                position: relative;
+                top: 2.5px;
+                width: 16px;
+            }
+
+            .hide {
+                display: none !important;
+            }
+
+            #header {
+                align-items: center;
+                background-color: var(--light-color);
+                color: var(--dark-text-color);
+                display: flex;
+                font-size: 1.2em;
+                justify-content: space-between;
+                margin-bottom: 2.5px;
+                text-align: left;
+                width: 100%;
+            }
+
+            #header-search {
+                align-items: flex-start;
+                display: flex;
+                flex-direction: column;
+                flex-grow: 0.5;
+                gap: 5px;
+            }
+
+            #search {
+                border: 1.5px solid var(--primary-light-color);
+                font-size: 1em;
+                transition:
+                    border-color 0.3s,
+                    box-shadow 0.3s;
+                width: 100%;
+            }
+
+            #search:focus {
+                border-color: var(--primary-light-color);
+                box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+                outline: none;
+            }
+
+            #header-title {
+                font-size: 1.5em;
+                font-weight: bold;
+            }
+
+            #header-btns {
+                align-items: center;
+                display: flex;
+                flex-direction: row;
+                font-size: 1.3em;
+                gap: 5px;
+                padding: 5px;
+            }
+
+            #status {
+                font-size: 1.3em;
+                padding: 10px;
+            }
+
+            #status.error {
+                color: red;
+                font-weight: bold;
+            }
+
+            .event {
+                align-items: center;
+                background-color: var(--primary-color);
+                color: var(--light-text-color);
+                display: flex;
+                font-size: 1.2em;
+                justify-content: space-between;
+                margin-bottom: 2.5px;
+                text-align: left;
+                width: 100%;
+            }
+
+            .event.page-change {
+                border-top: 5px solid var(--secondary-color);
+            }
+
+            .event-name {
+                align-items: center;
+                cursor: pointer;
+                display: flex;
+                flex-direction: row;
+                flex-grow: 1;
+                padding: 5px;
+            }
+
+            .event-index {
+                background-color: var(--light-color);
+                color: var(--dark-text-color);
+                font-weight: bold;
+                padding: 2.5px;
+                margin-right: 10px;
+            }
+
+            .event-btns {
+                align-items: flex-end;
+                display: flex;
+                flex-direction: row;
+                padding: 5px;
+            }
+
+            .event-copy-btn {
+                color: var(--light-color);
+            }
+
+            .event-content {
+                background-color: var(--light-color);
+                border-left: 2.5px solid var(--primary-color);
+                display: none;
+                margin-bottom: 2.5px;
+                padding: 10px 15px;
+            }
+
+            .event.active + .event-content {
+                display: block;
+            }
+
+            .event.hide + .event-content {
+                display: none;
+            }
+
+            .json-key {
+                color: #0984e3;
+                gap: 5px;
+            }
+
+            .json-boolean {
+                color: #6c5ce7;
+            }
+
+            .json-number {
+                color: #e17055;
+            }
+
+            .json-null {
+                color: #d63031;
+            }
+
+            .json-string {
+                color: #00b894;
+            }
+
+            @keyframes click-animation {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(0.75);
+                }
+            }
+
+            .animate {
+                animation: click-animation 0.3s ease;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="header">
+            <div id="header-search">
+                <span id="header-title">
+                    <img id="icon" src="./icon32.png" />
+                    dataLayer Explorer</span
+                >
+                <input id="search" class="hide" placeholder="Search events..." />
+            </div>
+            <div id="header-btns" class="hide">
+                <button id="expand-all-btn" class="btn" title="Expand all events.">&#65291;</button>
+                <button id="collapse-all-btn" class="btn" title="Collapse all events.">&#65293;</button>
+                <button id="refresh-btn" class="btn" title="Refresh the dataLayer events list.">&#10227;</button>
+            </div>
+        </div>
+        <div id="status">Checking if dataLayer is available on this page...</div>
+        <div id="events-container" class="hide"></div>
+    </body>
+
+    <script src="popup.js" type="module"></script>
+</html>
