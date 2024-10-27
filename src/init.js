@@ -67,12 +67,26 @@
     }
 
     function safeJSONStringify(obj) {
+        const seen = new WeakSet();
         return JSON.stringify(obj, (key, value) => {
             if (value instanceof HTMLElement) {
                 return value.outerHTML;
             }
+            if (typeof value === 'function') {
+                return value.toString();
+            }
+            if (isObject(value)) {
+                if (seen.has(value)) {
+                    return '[Circular]';
+                }
+                seen.add(value);
+            }
             return value;
         });
+    }
+
+    function isObject(obj) {
+        return Object(obj) === obj;
     }
 
     // Shared utils

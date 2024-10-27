@@ -386,7 +386,7 @@ function copyToClipboard(text) {
 }
 
 function isObject(obj) {
-    return obj !== null && typeof obj === 'object';
+    return Object(obj) === obj;
 }
 
 function isString(obj) {
