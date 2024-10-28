@@ -1,3 +1,4 @@
+/* eslint-disable n/no-unsupported-features/node-builtins */
 import * as GA from './ga4.js';
 
 // This is set to "development" when using "npm run start"
@@ -30,10 +31,7 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await syncAppVersion();
-    const res = await chrome.storage.session.get(['popupSearchTerm']);
-    if (res.popupSearchTerm) {
-        state.dom.search.value = res.popupSearchTerm;
-    }
+    const deferSetSearchTerm = await registerSetSearchTerm();
 
     const status = await queryDataLayerStatus();
     switch (status) {
@@ -55,16 +53,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Create DOM event handlers
-
-    const deferSetPopupSearchTerm = debounce(() => {
-        chrome.storage.session.set({
-            popupSearchTerm: state.dom.search.value,
-        });
-    }, 256);
     state.dom.search.addEventListener('input', async (event) => {
         const searchTerm = event.target.value;
         syncSearchTerm(searchTerm);
-        deferSetPopupSearchTerm();
+        deferSetSearchTerm();
     });
 
     state.dom.expandAllBtn.addEventListener('click', async (event) => {
@@ -126,6 +118,28 @@ async function syncAppVersion() {
 
     const cfg = await sendToBackground(EVENT_LOAD_CONFIG);
     state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${cfg.version}`);
+}
+
+async function registerSetSearchTerm() {
+    if (ENVIRONMENT === 'development') {
+        const searchTerm = sessionStorage.getItem('popupSearchTerm');
+        if (searchTerm) {
+            state.dom.search.value = searchTerm;
+        }
+        return debounce(() => {
+            sessionStorage.setItem('popupSearchTerm', state.dom.search.value);
+        }, 256);
+    }
+
+    const res = await chrome.storage.session.get(['popupSearchTerm']);
+    if (res.popupSearchTerm) {
+        state.dom.search.value = res.popupSearchTerm;
+    }
+    return debounce(() => {
+        chrome.storage.session.set({
+            popupSearchTerm: state.dom.search.value,
+        });
+    }, 256);
 }
 
 async function queryDataLayerStatus() {
