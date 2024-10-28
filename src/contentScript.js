@@ -45,7 +45,7 @@
     // Defer sending the count and status to the "background.js", if multiple entries are being pushed
     // in a short timeframe.
     // This is to limit the affect on the site's performance
-    const sendStatusToBackground = debounce(() => {
+    const deferSendStatusToBackground = debounce(() => {
         sendToBackground(EVENT_SYNC_DATALAYER_STATUS, {
             count: state.entries.length,
             status: state.status,
@@ -56,12 +56,12 @@
             case EVENT_DATALAYER_FOUND:
             case EVENT_DATALAYER_NOT_FOUND:
                 state.status = event;
-                sendStatusToBackground();
+                deferSendStatusToBackground();
                 return true;
             case EVENT_DATALAYER_ENTRIES: {
                 const entries = JSON.parse(data);
                 state.entries.push(...entries);
-                sendStatusToBackground();
+                deferSendStatusToBackground();
                 return true;
             }
         }
@@ -71,7 +71,7 @@
     // Stop flashing of the badge text, when the loading of dataLayer is quick
     setTimeout(() => {
         if (state.status === EVENT_DATALAYER_LOADING) {
-            sendStatusToBackground();
+            deferSendStatusToBackground();
         }
     }, 250);
     loadScript(chrome.runtime.getURL('init.js'));

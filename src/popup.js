@@ -30,6 +30,10 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await syncAppVersion();
+    const res = await chrome.storage.session.get(['popupSearchTerm']);
+    if (res.popupSearchTerm) {
+        state.dom.search.value = res.popupSearchTerm;
+    }
 
     const status = await queryDataLayerStatus();
     switch (status) {
@@ -51,6 +55,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Create DOM event handlers
+
+    const deferSetPopupSearchTerm = debounce(() => {
+        chrome.storage.session.set({
+            popupSearchTerm: state.dom.search.value,
+        });
+    }, 256);
+    state.dom.search.addEventListener('input', async (event) => {
+        const searchTerm = event.target.value;
+        syncSearchTerm(searchTerm);
+        deferSetPopupSearchTerm();
+    });
 
     state.dom.expandAllBtn.addEventListener('click', async (event) => {
         animate(event.target);
@@ -82,19 +97,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         eventEl.classList.toggle('active');
     });
 
-    addEventListener(document, 'click', '.event-copy-btn', (event, targetEl) => {
-        const eventEl = targetEl.closest('.event');
-        const eventDecoded = extendedAtob(eventEl.getAttribute('data-event'));
-        if (copyToClipboard(eventDecoded)) {
-            animate(targetEl);
-        }
-    });
-
-    state.dom.search.addEventListener('input', (event) => {
-        const searchTerm = event.target.value;
-        syncSearchTerm(searchTerm);
-    });
-
     addEventListener(document, 'click', 'a', (event, targetEl) => {
         if (ENVIRONMENT === 'development') {
             return;
@@ -105,6 +107,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             active: true,
             url: targetEl.href,
         });
+    });
+
+    addEventListener(document, 'click', '.event-copy-btn', (event, targetEl) => {
+        const eventEl = targetEl.closest('.event');
+        const eventDecoded = extendedAtob(eventEl.getAttribute('data-event'));
+        if (copyToClipboard(eventDecoded)) {
+            animate(targetEl);
+        }
     });
 });
 
@@ -445,6 +455,14 @@ function extendedAtob(str) {
 }
 
 // Shared utils
+
+function debounce(fn, delay) {
+    let timerId = 0;
+    return (...args) => {
+        clearTimeout(timerId);
+        timerId = setTimeout(() => fn(...args), delay);
+    };
+}
 
 async function sendToBackground(event, data = undefined) {
     return chrome.runtime.sendMessage({

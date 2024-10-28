@@ -62,7 +62,7 @@
     // This is to limit the affect on the site's performance
     function registerSendEventToContentScript() {
         const entries = [];
-        const sendEntries = debounce(() => {
+        const deferSendEntries = debounce(() => {
             sendToContentScript(EVENT_DATALAYER_ENTRIES, safeJSONStringify(entries));
 
             // Remove the entries after sending
@@ -74,7 +74,7 @@
                 afterPageLoadMs: Math.abs(Date.now() - window.performance.timeOrigin),
                 event,
             });
-            sendEntries();
+            deferSendEntries();
         };
     }
 
