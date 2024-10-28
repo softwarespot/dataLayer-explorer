@@ -70,8 +70,9 @@
         }, 256);
 
         return (event) => {
+            const afterPageLoadMs = Date.now() - window.performance.timeOrigin;
             entries.push({
-                afterPageLoadMs: Math.abs(Date.now() - window.performance.timeOrigin),
+                afterPageLoadMs: Math.abs(afterPageLoadMs),
                 event,
             });
             deferSendEntries();
