@@ -1,6 +1,6 @@
 {
     "name": "dataLayer Explorer",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "manifest_version": 3,
     "description": "dataLayer Explorer is designed to simplify the analysis of a site's dataLayer for developers and digital marketers.",
     "icons": {
@@ -15,12 +15,8 @@
     },
     "content_scripts": [
         {
-            "matches": [
-                "*://*/*"
-            ],
-            "js": [
-                "contentScript.js"
-            ],
+            "matches": ["*://*/*"],
+            "js": ["contentScript.js"],
             "run_at": "document_start"
         }
     ],
@@ -29,17 +25,11 @@
         "default_popup": "popup.html"
     },
     "permissions": [],
-    "host_permissions": [
-        "*://*/*"
-    ],
+    "host_permissions": ["*://*/*"],
     "web_accessible_resources": [
         {
-            "resources": [
-                "init.js"
-            ],
-            "matches": [
-                "<all_urls>"
-            ]
+            "resources": ["init.js"],
+            "matches": ["<all_urls>"]
         }
     ]
 }
