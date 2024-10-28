@@ -31,7 +31,7 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await syncAppVersion();
-    const deferSetSearchTerm = await registerSetSearchTerm();
+    await syncInputSearchTerm();
 
     const status = await queryDataLayerStatus();
     switch (status) {
@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Create DOM event handlers
+    const deferSetSearchTerm = registerSetSearchTerm();
     state.dom.search.addEventListener('input', async (event) => {
         const searchTerm = event.target.value;
         syncSearchTerm(searchTerm);
@@ -120,20 +121,22 @@ async function syncAppVersion() {
     state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${cfg.version}`);
 }
 
-async function registerSetSearchTerm() {
+async function syncInputSearchTerm() {
     if (ENVIRONMENT === 'development') {
         const searchTerm = sessionStorage.getItem('popupSearchTerm');
-        if (searchTerm) {
-            state.dom.search.value = searchTerm;
-        }
-        return debounce(() => {
-            sessionStorage.setItem('popupSearchTerm', state.dom.search.value);
-        }, 256);
+        state.dom.search.value = searchTerm ?? '';
+        return;
     }
 
     const res = await chrome.storage.session.get(['popupSearchTerm']);
-    if (res.popupSearchTerm) {
-        state.dom.search.value = res.popupSearchTerm;
+    state.dom.search.value = res.popupSearchTerm ?? '';
+}
+
+function registerSetSearchTerm() {
+    if (ENVIRONMENT === 'development') {
+        return debounce(() => {
+            sessionStorage.setItem('popupSearchTerm', state.dom.search.value);
+        }, 256);
     }
     return debounce(() => {
         chrome.storage.session.set({
