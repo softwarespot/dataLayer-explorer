@@ -7,7 +7,7 @@ const events = [
     {
         group: 'All properties',
         name: 'earn_virtual_currency',
-        url: 'h recommendedttps://developers.google.com/analytics/devguides/collection/ga4/reference/events#earn_virtual_currency',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#earn_virtual_currency',
     },
     {
         group: 'All properties',
@@ -68,76 +68,6 @@ const events = [
         group: 'All properties',
         name: 'tutorial_complete',
         url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#tutorial_complete',
-    },
-    {
-        group: 'Online sales',
-        name: 'add_payment_info',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_payment_info',
-    },
-    {
-        group: 'Online sales',
-        name: 'add_shipping_info',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_shipping_info',
-    },
-    {
-        group: 'Online sales',
-        name: 'add_to_cart',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_to_cart',
-    },
-    {
-        group: 'Online sales',
-        name: 'add_to_wishlist',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_to_wishlist',
-    },
-    {
-        group: 'Online sales',
-        name: 'begin_checkout',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#begin_checkout',
-    },
-    {
-        group: 'Online sales',
-        name: 'purchase',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#purchase',
-    },
-    {
-        group: 'Online sales',
-        name: 'refund',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#refund',
-    },
-    {
-        group: 'Online sales',
-        name: 'remove_from_cart',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#remove_from_cart',
-    },
-    {
-        group: 'Online sales',
-        name: 'select_item',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#select_item',
-    },
-    {
-        group: 'Online sales',
-        name: 'select_promotion',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#select_promotion',
-    },
-    {
-        group: 'Online sales',
-        name: 'view_cart',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_cart',
-    },
-    {
-        group: 'Online sales',
-        name: 'view_item',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_item',
-    },
-    {
-        group: 'Online sales',
-        name: 'view_item_list',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_item_list',
-    },
-    {
-        group: 'Online sales',
-        name: 'view_promotion',
-        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_promotion',
     },
     {
         group: 'Games',
@@ -223,6 +153,76 @@ const events = [
         group: 'Lead generation',
         name: 'close_unconvert_lead',
         url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events?client_type=gtag#close_unconvert_lead',
+    },
+    {
+        group: 'Online sales',
+        name: 'add_payment_info',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_payment_info',
+    },
+    {
+        group: 'Online sales',
+        name: 'add_shipping_info',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_shipping_info',
+    },
+    {
+        group: 'Online sales',
+        name: 'add_to_cart',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_to_cart',
+    },
+    {
+        group: 'Online sales',
+        name: 'add_to_wishlist',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#add_to_wishlist',
+    },
+    {
+        group: 'Online sales',
+        name: 'begin_checkout',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#begin_checkout',
+    },
+    {
+        group: 'Online sales',
+        name: 'purchase',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#purchase',
+    },
+    {
+        group: 'Online sales',
+        name: 'refund',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#refund',
+    },
+    {
+        group: 'Online sales',
+        name: 'remove_from_cart',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#remove_from_cart',
+    },
+    {
+        group: 'Online sales',
+        name: 'select_item',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#select_item',
+    },
+    {
+        group: 'Online sales',
+        name: 'select_promotion',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#select_promotion',
+    },
+    {
+        group: 'Online sales',
+        name: 'view_cart',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_cart',
+    },
+    {
+        group: 'Online sales',
+        name: 'view_item',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_item',
+    },
+    {
+        group: 'Online sales',
+        name: 'view_item_list',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_item_list',
+    },
+    {
+        group: 'Online sales',
+        name: 'view_promotion',
+        url: 'https://developers.google.com/analytics/devguides/collection/ga4/reference/events#view_promotion',
     },
 ];
 
