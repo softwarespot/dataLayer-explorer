@@ -19,6 +19,7 @@ const state = {
     dom: {
         title: document.getElementById('header-title'),
         search: document.getElementById('search'),
+        copyAllBtn: document.getElementById('copy-all-btn'),
         expandAllBtn: document.getElementById('expand-all-btn'),
         collapseAllBtn: document.getElementById('collapse-all-btn'),
         refreshBtn: document.getElementById('refresh-btn'),
@@ -58,6 +59,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const searchTerm = event.target.value;
         syncFilterDataLayerEntries(searchTerm);
         deferSetSearchTerm();
+    });
+
+    state.dom.copyAllBtn.addEventListener('click', async (event) => {
+        const events = [];
+        const els = state.dom.eventsContainer.querySelectorAll('.event');
+        for (const el of els) {
+            const eventDecoded = extendedAtob(el.getAttribute('data-event'));
+            const event = JSON.parse(eventDecoded);
+            events.push(event);
+        }
+        if (copyToClipboard(JSON.stringify(events, undefined, 2))) {
+            const el = event.target.closest('#copy-all-btn');
+            animate(el);
+        }
     });
 
     state.dom.expandAllBtn.addEventListener('click', async (event) => {
@@ -250,7 +265,7 @@ async function syncDataLayerEntries() {
             </div>
             <div class="event-btns">
                 ${getGA4EventIcon(entry.event)}
-                <button class="btn event-copy-btn" title="Copy the dataLayer event to the clipboard.">
+                <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">
                     <span style="font-size: .875em; left: -.125em; margin-right: .125em; position: relative; top: -.15em;">
                         📄
                         <span style="left: .15em; position: absolute; top: .15em;">

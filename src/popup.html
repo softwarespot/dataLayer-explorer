@@ -164,10 +164,6 @@
                 padding: 5px;
             }
 
-            .event-copy-btn {
-                color: var(--light-color);
-            }
-
             .event-content {
                 background-color: var(--light-color);
                 border-left: 2.5px solid var(--primary-color);
@@ -232,6 +228,14 @@
                 <input id="search" class="hide" placeholder="Search events..." />
             </div>
             <div id="header-btns" class="hide">
+                <button id="copy-all-btn" class="btn" title="Copy the dataLayer events to the clipboard.">
+                    <span style="font-size: .875em; left: -.125em; margin-right: .125em; position: relative; top: -.15em;">
+                        📄
+                        <span style="left: .15em; position: absolute; top: .15em;">
+                            📄
+                        </span>
+                    </span>
+                </button>
                 <button id="expand-all-btn" class="btn" title="Expand all events.">&#65291;</button>
                 <button id="collapse-all-btn" class="btn" title="Collapse all events.">&#65293;</button>
                 <button id="refresh-btn" class="btn" title="Refresh the dataLayer events list.">&#10227;</button>
