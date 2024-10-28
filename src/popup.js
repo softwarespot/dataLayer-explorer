@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.dom.status.classList.add('hide');
 
             await syncDataLayerEntries();
-            syncSearchTerm(state.dom.search.value);
+            syncFilterDataLayerEntries(state.dom.search.value);
             break;
         }
         case EVENT_DATALAYER_NOT_FOUND:
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deferSetSearchTerm = registerSetSearchTerm();
     state.dom.search.addEventListener('input', async (event) => {
         const searchTerm = event.target.value;
-        syncSearchTerm(searchTerm);
+        syncFilterDataLayerEntries(searchTerm);
         deferSetSearchTerm();
     });
 
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         animate(event.target);
 
         await syncDataLayerEntries();
-        syncSearchTerm(state.dom.search.value);
+        syncFilterDataLayerEntries(state.dom.search.value);
     });
 
     addEventListener(document, 'click', '.event-name', (event, targetEl) => {
@@ -322,7 +322,7 @@ function getFirstFlattenedKey(obj, depth = 2, currDepth = 1) {
     return undefined;
 }
 
-function syncSearchTerm(searchTerm) {
+function syncFilterDataLayerEntries(searchTerm) {
     const els = state.dom.eventsContainer.querySelectorAll('.event');
     for (const el of els) {
         const eventDecoded = extendedAtob(el.getAttribute('data-event'));
