@@ -24,7 +24,7 @@
         "default_icon": "icons/icon32.png",
         "default_popup": "popup.html"
     },
-    "permissions": ["activeTab", "storage"],
+    "permissions": ["storage"],
     "host_permissions": ["*://*/*"],
     "web_accessible_resources": [
         {
