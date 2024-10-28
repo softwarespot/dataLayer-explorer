@@ -268,7 +268,7 @@ function getGA4EventIcon(obj) {
     }
     return `
         <a href="${eventInfo.url}" class="btn" title="This is a Google Analytics 4 (GA4) event." target="_blank" rel="noopener noreferrer">
-            <img src="./ga4.svg" class="ga4-icon" />
+            <img src="./icons/ga4.svg" class="ga4-icon" />
         </a>
     `;
 }
