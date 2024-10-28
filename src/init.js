@@ -6,7 +6,7 @@
 
     const EVENT_DATALAYER_ENTRY = 'DATALAYER_ENTRY';
 
-    // Taken from "contentscript.js"
+    // Taken from "contentScript.js"
     const SOURCE_FROM_CONTENT_SCRIPT = 'DLE_SOURCE_FROM_CONTENT_SCRIPT';
     const SOURCE_FROM_INIT = 'DLE_SOURCE_FROM_INIT';
 

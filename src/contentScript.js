@@ -16,7 +16,7 @@
 
     // Originally this used to be in "background.js", but as the state
     // is no longer persistant due to being a Service Worker, it should
-    // be kept in the "contentscript.js", as it's only need for the lifetime
+    // be kept in the "contentScript.js", as it's only need for the lifetime
     // of the page
 
     /* eslint-disable sort-keys-fix/sort-keys-fix */

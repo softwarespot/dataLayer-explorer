@@ -9,7 +9,7 @@ const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
 const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
 const EVENT_SYNC_DATALAYER_STATUS = 'SYNC_DATALAYER_STATUS';
 
-// From "popup.js" or "contentscript.js"
+// From "popup.js" or "contentScript.js"
 registerHandlerFromPopup(async (req, sender) => {
     switch (req.event) {
         case EVENT_LOAD_CONFIG: {

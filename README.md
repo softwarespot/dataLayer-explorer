@@ -28,8 +28,8 @@ This extension is built with simplicity and transparency in mind. The source cod
 
 -   `background.js`: Serves as the extension's service worker, responsible for updating the browser icon based on the presence of the `dataLayer` for the currently viewed site.
 -   `popup.html` / `popup.js`: Provides the user interface for debugging and interacting with the `dataLayer`.
--   `contentscript.js`: Facilitates communication between `background.js` and `popup.html`, detecting when the `dataLayer` is present and relaying the events pushed to it.
--   `init.js`: Loaded by `contentscript.js`, this script captures dataLayer events and sends them back to `contentscript.js`. This is necessary because `contentscript.js` lacks direct access to the window object and relies on these events when requested by popup.html.
+-   `contentScript.js`: Facilitates communication between `background.js` and `popup.html`, detecting when the `dataLayer` is present and relaying the events pushed to it.
+-   `init.js`: Loaded by `contentScript.js`, this script captures dataLayer events and sends them back to `contentScript.js`. This is necessary because `contentScript.js` lacks direct access to the window object and relies on these events when requested by popup.html.
 
 ### Setup
 

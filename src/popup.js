@@ -9,7 +9,7 @@ const EVENT_DATALAYER_LOADING = 'DATALAYER_LOADING';
 const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
 const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
 
-// Taken from "contentscript.js"
+// Taken from "contentScript.js"
 const EVENT_GET_DATALAYER_STATUS = 'GET_DATALAYER_STATUS';
 const EVENT_GET_DATALAYER_ENTRIES = 'GET_DATALAYER_ENTRIES';
 
@@ -132,12 +132,12 @@ async function queryDataLayerStatus() {
                     return data.status;
                 case EVENT_DATALAYER_LOADING:
                 default:
-                    // Continue to wait for the status from the "contentscript.js"
+                    // Continue to wait for the status from the "contentScript.js"
                     break;
             }
             await sleep(512);
         } catch {
-            // Ignore the error, as it means the "contentscript.js" is not available
+            // Ignore the error, as it means the "contentScript.js" is not available
             return EVENT_DATALAYER_LOADING;
         }
     }
