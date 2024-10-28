@@ -72,7 +72,7 @@
             if (value instanceof HTMLElement) {
                 return value.outerHTML;
             }
-            if (typeof value === 'function') {
+            if (isFunction(value)) {
                 return value.toString();
             }
             if (isObject(value)) {
@@ -83,6 +83,10 @@
             }
             return value;
         });
+    }
+
+    function isFunction(obj) {
+        return typeof obj === 'function';
     }
 
     function isObject(obj) {
