@@ -29,7 +29,7 @@
     "web_accessible_resources": [
         {
             "resources": ["init.js"],
-            "matches": ["<all_urls>"]
+            "matches": ["*://*/*"]
         }
     ]
 }
