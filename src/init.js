@@ -4,12 +4,13 @@
     const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
     const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
 
-    const EVENT_DATALAYER_ENTRY = 'DATALAYER_ENTRY';
+    const EVENT_DATALAYER_ENTRIES = 'DATALAYER_ENTRIES';
 
     // Taken from "contentScript.js"
     const SOURCE_FROM_CONTENT_SCRIPT = 'DLE_SOURCE_FROM_CONTENT_SCRIPT';
     const SOURCE_FROM_INIT = 'DLE_SOURCE_FROM_INIT';
 
+    const sendEvent = registerSendEventToContentScript();
     const sendToContentScript = registerSender(SOURCE_FROM_INIT, SOURCE_FROM_CONTENT_SCRIPT);
     try {
         const dataLayer = await dataLayerLoaded();
@@ -32,7 +33,7 @@
         console.info(MODULE, err instanceof Error ? err.message : 'An unexpected error occurred');
     }
 
-    async function dataLayerLoaded(timeout = 5000) {
+    async function dataLayerLoaded(timeout = 4096) {
         return new Promise((resolve, reject) => {
             let timerId = 0;
             function dataLayerLoadedChecker() {
@@ -56,14 +57,25 @@
         });
     }
 
-    function sendEvent(event) {
-        sendToContentScript(
-            EVENT_DATALAYER_ENTRY,
-            safeJSONStringify({
+    // Defer sending the entries to the "contentScript.js", if multiple entries are being pushed
+    // in a short timeframe.
+    // This is to limit the affect on the site's performance
+    function registerSendEventToContentScript() {
+        const entries = [];
+        const sendEntries = debounce(() => {
+            sendToContentScript(EVENT_DATALAYER_ENTRIES, safeJSONStringify(entries));
+
+            // Remove the entries after sending
+            entries.length = 0;
+        }, 256);
+
+        return (event) => {
+            entries.push({
                 afterPageLoadMs: Math.abs(Date.now() - window.performance.timeOrigin),
                 event,
-            }),
-        );
+            });
+            sendEntries();
+        };
     }
 
     function safeJSONStringify(obj) {
@@ -95,9 +107,17 @@
 
     // Shared utils
 
+    function debounce(fn, delay) {
+        let timerId = 0;
+        return (...args) => {
+            clearTimeout(timerId);
+            timerId = setTimeout(() => fn(...args), delay);
+        };
+    }
+
     // Communicate using "window.postMessage", waiting for a response from the window
     // who is responsible for handling the event
-    function registerSender(source, target, timeout = 10000) {
+    function registerSender(source, target, timeout = 4096) {
         let globalId = 0;
         return async (event, data = undefined) => {
             const wantId = `REGISTER_SENDER_${source}_${target}_${globalId++}`;

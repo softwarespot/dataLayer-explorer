@@ -5,7 +5,7 @@
     const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
     const EVENT_SYNC_DATALAYER_STATUS = 'SYNC_DATALAYER_STATUS';
 
-    const EVENT_DATALAYER_ENTRY = 'DATALAYER_ENTRY';
+    const EVENT_DATALAYER_ENTRIES = 'DATALAYER_ENTRIES';
 
     const SOURCE_FROM_CONTENT_SCRIPT = 'DLE_SOURCE_FROM_CONTENT_SCRIPT';
     const SOURCE_FROM_INIT = 'DLE_SOURCE_FROM_INIT';
@@ -42,6 +42,15 @@
         }
     });
 
+    // Defer sending the count and status to the "background.js", if multiple entries are being pushed
+    // in a short timeframe.
+    // This is to limit the affect on the site's performance
+    const sendStatusToBackground = debounce(() => {
+        sendToBackground(EVENT_SYNC_DATALAYER_STATUS, {
+            count: state.entries.length,
+            status: state.status,
+        });
+    }, 256);
     registerHandler(SOURCE_FROM_CONTENT_SCRIPT, SOURCE_FROM_INIT, async (event, data) => {
         switch (event) {
             case EVENT_DATALAYER_FOUND:
@@ -49,10 +58,12 @@
                 state.status = event;
                 sendStatusToBackground();
                 return true;
-            case EVENT_DATALAYER_ENTRY:
-                state.entries.push(JSON.parse(data));
+            case EVENT_DATALAYER_ENTRIES: {
+                const entries = JSON.parse(data);
+                state.entries.push(...entries);
                 sendStatusToBackground();
                 return true;
+            }
         }
         return undefined;
     });
@@ -65,13 +76,6 @@
     }, 250);
     loadScript(chrome.runtime.getURL('init.js'));
 
-    function sendStatusToBackground() {
-        sendToBackground(EVENT_SYNC_DATALAYER_STATUS, {
-            count: state.entries.length,
-            status: state.status,
-        });
-    }
-
     // Utils
 
     function loadScript(src) {
@@ -81,6 +85,14 @@
     }
 
     // Shared utils
+
+    function debounce(afterFn, delay) {
+        let timerId = 0;
+        return (...args) => {
+            clearTimeout(timerId);
+            timerId = setTimeout(() => afterFn(...args), delay);
+        };
+    }
 
     // A utility function for supporting async/await in "onMessage".
     // If "undefined" is returned from the function, then the sender is not notified; otherwise, the sender is notified
