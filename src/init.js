@@ -80,7 +80,7 @@
 
     function safeJSONStringify(obj) {
         const seen = new WeakSet();
-        return JSON.stringify(obj, (key, value) => {
+        return JSON.stringify(obj, (_, value) => {
             if (value instanceof HTMLElement) {
                 return value.outerHTML;
             }
