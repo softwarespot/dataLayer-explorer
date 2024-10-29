@@ -8,7 +8,7 @@
     "main": "src/popup.html",
     "scripts": {
         "clean:files": "rm -f *.pem *.zip",
-        "make": "crx pack ./src --zip-output dle.zip && rm ./key.pem",
+        "make:zip": "crx pack ./src --zip-output dle.zip && rm ./key.pem",
         "start": "PORT=8100 node ./scripts/dev_server.js"
     },
     "devDependencies": {
