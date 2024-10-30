@@ -20,7 +20,7 @@
 
 ## Installation
 
--   [Chrome Web Store](...)
+-   [Chrome Web Store](https://chromewebstore.google.com/detail/datalayer-explorer/akeipgacajnejdmcdmjcilfmhmaejjoe)
 
 ## Development
 
