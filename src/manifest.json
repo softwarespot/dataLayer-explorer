@@ -15,12 +15,8 @@
     },
     "content_scripts": [
         {
-            "matches": [
-                "*://*/*"
-            ],
-            "js": [
-                "contentScript.js"
-            ],
+            "matches": ["*://*/*"],
+            "js": ["contentScript.js"],
             "run_at": "document_start"
         }
     ],
@@ -28,17 +24,11 @@
         "default_icon": "icons/icon32.png",
         "default_popup": "popup.html"
     },
-    "permissions": [
-        "storage"
-    ],
+    "permissions": ["storage"],
     "web_accessible_resources": [
         {
-            "resources": [
-                "init.js"
-            ],
-            "matches": [
-                "*://*/*"
-            ]
+            "resources": ["init.js"],
+            "matches": ["*://*/*"]
         }
     ]
 }
