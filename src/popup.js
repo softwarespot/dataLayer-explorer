@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.dom.status.classList.add('hide');
 
             await syncDataLayerEntries();
+            registerSyncDataLayerEntries();
             break;
         }
         case EVENT_DATALAYER_NOT_FOUND:
@@ -142,6 +143,24 @@ async function syncAppVersion() {
 
     const cfg = await sendToBackground(EVENT_LOAD_CONFIG);
     state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${cfg.version}`);
+}
+
+function registerSyncDataLayerEntries() {
+    let emptySyncCounts = 0;
+    async function syncDataLayerEntriesChecker() {
+        const syncedEntries = await syncDataLayerEntries();
+        if (syncedEntries) {
+            emptySyncCounts = 0;
+        } else {
+            emptySyncCounts += 1;
+        }
+
+        // Continue for a maximum of 30 times
+        if (emptySyncCounts < 30) {
+            setTimeout(syncDataLayerEntriesChecker, 1024);
+        }
+    }
+    syncDataLayerEntriesChecker();
 }
 
 async function syncSearchTermInput() {
@@ -263,10 +282,7 @@ async function queryDataLayerEntries() {
 
 async function syncDataLayerEntries() {
     const entries = await queryDataLayerEntries();
-    if (entries.length === 0) {
-        return;
-    }
-
+    const hasSynableEntries = state.currEventsIndex < entries.length;
     for (; state.currEventsIndex < entries.length; state.currEventsIndex += 1) {
         const entry = entries[state.currEventsIndex];
         const entryIdx = state.currEventsIndex + 1;
@@ -299,7 +315,12 @@ async function syncDataLayerEntries() {
     `;
         state.dom.eventsContainer.insertAdjacentHTML('afterbegin', eventHTML);
     }
+    if (!hasSynableEntries) {
+        return false;
+    }
+
     syncFilterDataLayerEntries(state.dom.search.value);
+    return true;
 }
 
 function getEventName(obj) {
