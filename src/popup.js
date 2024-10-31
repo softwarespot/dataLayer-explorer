@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const els = state.dom.eventsContainer.querySelectorAll('.event');
         for (const el of els) {
-            el.classList.remove('active');
+            el.classList.remove('show');
         }
     });
 
