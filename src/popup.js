@@ -32,7 +32,7 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await syncAppVersion();
-    await syncInputSearchTerm();
+    await syncSearchTermInput();
 
     const status = await queryDataLayerStatus();
     switch (status) {
@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.dom.status.classList.add('hide');
 
             await syncDataLayerEntries();
-            syncFilterDataLayerEntries(state.dom.search.value);
             break;
         }
         case EVENT_DATALAYER_NOT_FOUND:
@@ -65,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const events = [];
         const els = state.dom.eventsContainer.querySelectorAll('.event');
         for (const el of els) {
-            const eventDecoded = extendedAtob(el.getAttribute('data-event'));
+            const eventDecoded = encodedAtob(el.getAttribute('data-event'));
             const event = JSON.parse(eventDecoded);
             events.push(event);
         }
@@ -96,7 +95,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         animate(event.target);
 
         await syncDataLayerEntries();
-        syncFilterDataLayerEntries(state.dom.search.value);
     });
 
     addEventListener(document, 'click', '.event-name', (event, targetEl) => {
@@ -119,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     addEventListener(document, 'click', '.event-copy-btn', (event, targetEl) => {
         const eventEl = targetEl.closest('.event');
-        const eventDecoded = extendedAtob(eventEl.getAttribute('data-event'));
+        const eventDecoded = encodedAtob(eventEl.getAttribute('data-event'));
         if (copyToClipboard(eventDecoded)) {
             animate(targetEl);
         }
@@ -146,7 +144,7 @@ async function syncAppVersion() {
     state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${cfg.version}`);
 }
 
-async function syncInputSearchTerm() {
+async function syncSearchTermInput() {
     if (ENVIRONMENT === 'development') {
         const searchTerm = sessionStorage.getItem('popupSearchTerm');
         state.dom.search.value = searchTerm ?? '';
@@ -202,33 +200,37 @@ async function queryDataLayerEntries() {
             {
                 afterPageLoadMs: 5000,
                 event: {
-                    eventName: 'genericEvent1',
+                    eventName: 'generic_event_1',
                     genericTimestamp: 1234567890123,
                 },
+                trace: 'Stack trace',
             },
             {
                 afterPageLoadMs: 5000,
                 event: {
                     event: 'select_item',
                 },
+                trace: 'Stack trace',
             },
             {
                 afterPageLoadMs: 5000,
                 event: {
                     genericProperty: null,
                 },
+                trace: 'Stack trace',
             },
             {
                 afterPageLoadMs: 5000,
                 event: {
-                    eventName: 'genericEvent2',
+                    eventName: 'generic_event_2',
                     genericAttribute1: '<a href="">Generic Link</a>',
                     genericAttribute2: '',
                     pageTitle: 'Generic Page Title',
                     pageUrl: 'https://www.example.com/',
                     url: 'https://www.example.com/',
-                    userStatus: 'genericStatus',
+                    userStatus: 'generic_Status',
                 },
+                trace: 'Stack trace',
             },
             {
                 afterPageLoadMs: 5000,
@@ -236,9 +238,10 @@ async function queryDataLayerEntries() {
                     contentId: 'Generic Content ID',
                     contentIndex: 2,
                     contentType: 'Generic Content Type',
-                    eventName: 'genericEvent3',
+                    eventName: 'generic_event_3',
                     linkUrl: 'https://example.com/generic-product',
                 },
+                trace: 'Stack trace',
             },
             {
                 afterPageLoadMs: 5000,
@@ -260,6 +263,10 @@ async function queryDataLayerEntries() {
 
 async function syncDataLayerEntries() {
     const entries = await queryDataLayerEntries();
+    if (entries.length === 0) {
+        return;
+    }
+
     for (; state.currEventsIndex < entries.length; state.currEventsIndex += 1) {
         const entry = entries[state.currEventsIndex];
         const entryIdx = state.currEventsIndex + 1;
@@ -268,19 +275,19 @@ async function syncDataLayerEntries() {
 
         const isGTMHistoryChangeV2 = entry.event?.event === 'gtm.historyChange-v2';
         const eventHTML = `
-        <div class="event ${isGTMHistoryChangeV2 ? 'page-change' : ''}" data-event="${extendedBtoa(event)}">
+        <div class="event ${isGTMHistoryChangeV2 ? 'page-change' : ''}" data-event="${encodedBtoa(event)}">
             <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load.">
                 <span class="event-index">${entryIdx}</span>
                 ${getEventName(entry.event)}
             </div>
             <div class="event-btns">
-                ${getGA4EventIcon(entry.event)}
+                ${getEventIconGA4(entry.event)}
                 <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">&#128203;</button>
                 <button class="eye-icon event-advanced-info-btn btn" title="Display advanced information about the event.">&#128065;</button>
             </div>
         </div>
         <div class="event-content">
-            <pre>${syntaxHighlight(event)}</pre>
+            <pre>${jsonSyntaxHighlight(event)}</pre>
             <div class="event-advanced-info">
                 <hr />
                 <h2>Advanced information</h2>
@@ -292,6 +299,7 @@ async function syncDataLayerEntries() {
     `;
         state.dom.eventsContainer.insertAdjacentHTML('afterbegin', eventHTML);
     }
+    syncFilterDataLayerEntries(state.dom.search.value);
 }
 
 function getEventName(obj) {
@@ -310,7 +318,7 @@ function getEventName(obj) {
     return 'unknown data';
 }
 
-function getGA4EventIcon(obj) {
+function getEventIconGA4(obj) {
     if (!isObject(obj) || !isString(obj.event)) {
         return '';
     }
@@ -351,7 +359,7 @@ function getFirstFlattenedKey(obj, depth = 2, currDepth = 1) {
 function syncFilterDataLayerEntries(searchTerm) {
     const els = state.dom.eventsContainer.querySelectorAll('.event');
     for (const el of els) {
-        const eventDecoded = extendedAtob(el.getAttribute('data-event'));
+        const eventDecoded = encodedAtob(el.getAttribute('data-event'));
         if (eventDecoded.includes(searchTerm)) {
             el.classList.remove('hide');
         } else {
@@ -360,7 +368,7 @@ function syncFilterDataLayerEntries(searchTerm) {
     }
 }
 
-function syntaxHighlight(data) {
+function jsonSyntaxHighlight(data) {
     // Taken from URL: https://codepen.io/absolutedevelopment/pen/EpwVzN
     const reParseJSON =
         // eslint-disable-next-line security/detect-unsafe-regex, sonarjs/regex-complexity
@@ -370,12 +378,12 @@ function syntaxHighlight(data) {
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
         .replace(reParseJSON, (str) => {
-            const className = getSyntaxHighlightClassName(str);
+            const className = getJSONSyntaxHighlightClassName(str);
             return `<span class="${className}">${truncate(str, 256)}</span>`;
         });
 }
 
-function getSyntaxHighlightClassName(str) {
+function getJSONSyntaxHighlightClassName(str) {
     if (str.startsWith('"')) {
         if (str.endsWith(':')) {
             return 'json-key';
@@ -489,11 +497,11 @@ function truncate(str, maxLen, prefix = '...') {
     return str.length > maxLen ? `${str.substr(0, maxLen)}${prefix}` : str;
 }
 
-function extendedBtoa(str) {
+function encodedBtoa(str) {
     return btoa(encodeURIComponent(str));
 }
 
-function extendedAtob(str) {
+function encodedAtob(str) {
     return decodeURIComponent(atob(str));
 }
 
