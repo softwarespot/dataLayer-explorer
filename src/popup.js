@@ -70,8 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             events.push(event);
         }
         if (copyToClipboard(JSON.stringify(events, undefined, 2))) {
-            const el = event.target.closest('#copy-all-btn');
-            animate(el);
+            animate(event.target);
         }
     });
 
