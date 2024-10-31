@@ -125,13 +125,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    addEventListener(document, 'click', '.event-info-btn', (event, targetEl) => {
+    addEventListener(document, 'click', '.event-advanced-info-btn', (event, targetEl) => {
         animate(targetEl);
         const eventEl = targetEl.closest('.event');
         eventEl.classList.add('show');
 
         // The event content is the next sibling in the DOM tree
-        const eventTraceEl = eventEl.nextElementSibling.querySelector('.event-info');
+        const eventTraceEl = eventEl.nextElementSibling.querySelector('.event-advanced-info');
         eventTraceEl.classList.toggle('show');
     });
 });
@@ -275,13 +275,13 @@ async function syncDataLayerEntries() {
             </div>
             <div class="event-btns">
                 ${getGA4EventIcon(entry.event)}
-                <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">📋</button>
-                <button class="eye-icon event-info-btn btn" title="Display advanced information about the event.">👁</button>
+                <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">&#128203;</button>
+                <button class="eye-icon event-advanced-info-btn btn" title="Display advanced information about the event.">&#128065;</button>
             </div>
         </div>
         <div class="event-content">
             <pre>${syntaxHighlight(event)}</pre>
-            <div class="event-info">
+            <div class="event-advanced-info">
                 <hr />
                 <h2>Advanced information</h2>
                 <p>The event was sent ${afterPageLoad} after the initial page load.</p>
