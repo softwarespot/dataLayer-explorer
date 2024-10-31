@@ -1,9 +1,10 @@
+/* eslint-disable sonarjs/no-small-switch */
+
 const COLOR_GREEN = '#2e7d32';
 const COLOR_ORANGE = '#ff8c00';
 const COLOR_RED = '#c0392b';
 const COLOR_WHITE = '#ecf0f1';
 
-const EVENT_LOAD_CONFIG = 'LOAD_CONFIG';
 const EVENT_DATALAYER_LOADING = 'DATALAYER_LOADING';
 const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
 const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
@@ -12,22 +13,12 @@ const EVENT_SYNC_DATALAYER_STATUS = 'SYNC_DATALAYER_STATUS';
 // From "popup.js" or "contentScript.js"
 registerHandlerFromPopup(async (req, sender) => {
     switch (req.event) {
-        case EVENT_LOAD_CONFIG: {
-            return getConfig();
-        }
         case EVENT_SYNC_DATALAYER_STATUS:
             syncDataLayerStatus(sender.tab, req.data);
             return undefined;
     }
     return undefined;
 });
-
-async function getConfig() {
-    const cfgApp = chrome.runtime.getManifest();
-    return {
-        version: cfgApp.version,
-    };
-}
 
 function syncDataLayerStatus(tab, data) {
     /* eslint-disable sort-keys-fix/sort-keys-fix */

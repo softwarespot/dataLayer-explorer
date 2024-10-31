@@ -5,7 +5,6 @@ import * as GA from './ga4.js';
 const ENVIRONMENT = 'production';
 
 // Taken from "background.js"
-const EVENT_LOAD_CONFIG = 'LOAD_CONFIG';
 const EVENT_DATALAYER_LOADING = 'DATALAYER_LOADING';
 const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
 const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
@@ -141,8 +140,8 @@ async function syncAppVersion() {
         return;
     }
 
-    const cfg = await sendToBackground(EVENT_LOAD_CONFIG);
-    state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${cfg.version}`);
+    const manifest = chrome.runtime.getManifest();
+    state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${manifest.version}`);
 }
 
 function registerSyncDataLayerEntries() {
@@ -535,13 +534,6 @@ function debounce(fn, delay) {
         clearTimeout(timerId);
         timerId = setTimeout(() => fn(...args), delay);
     };
-}
-
-async function sendToBackground(event, data = undefined) {
-    return chrome.runtime.sendMessage({
-        data,
-        event,
-    });
 }
 
 async function sendToContentScript(event, data = undefined) {
