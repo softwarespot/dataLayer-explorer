@@ -51,6 +51,7 @@
             status: state.status,
         });
     }, 256);
+
     registerHandler(SOURCE_FROM_CONTENT_SCRIPT, SOURCE_FROM_INIT, async (event, data) => {
         switch (event) {
             case EVENT_DATALAYER_FOUND:

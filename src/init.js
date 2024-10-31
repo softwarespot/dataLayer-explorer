@@ -10,9 +10,9 @@
     const SOURCE_FROM_CONTENT_SCRIPT = 'DLE_SOURCE_FROM_CONTENT_SCRIPT';
     const SOURCE_FROM_INIT = 'DLE_SOURCE_FROM_INIT';
 
-    const sendEvent = registerSendEventToContentScript();
     const sendToContentScript = registerSender(SOURCE_FROM_INIT, SOURCE_FROM_CONTENT_SCRIPT);
     try {
+        const sendEvent = registerSendEventToContentScript();
         const dataLayer = await dataLayerLoaded();
         for (const event of dataLayer) {
             sendEvent(event);

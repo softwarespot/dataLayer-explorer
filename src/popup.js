@@ -154,6 +154,7 @@ function registerSetSearchTerm() {
             sessionStorage.setItem('popupSearchTerm', state.dom.search.value);
         }, 256);
     }
+
     return debounce(() => {
         chrome.storage.session.set({
             popupSearchTerm: state.dom.search.value,
