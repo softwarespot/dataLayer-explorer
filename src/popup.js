@@ -275,12 +275,8 @@ async function syncDataLayerEntries() {
             </div>
             <div class="event-btns">
                 ${getGA4EventIcon(entry.event)}
-                <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">
-                    📋
-                </button>
-                <button class="eye-icon event-info-btn btn" title="Display advanced information about the event.">
-                    👁
-                </button>
+                <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">📋</button>
+                <button class="eye-icon event-info-btn btn" title="Display advanced information about the event.">👁</button>
             </div>
         </div>
         <div class="event-content">
