@@ -222,21 +222,21 @@ async function queryDataLayerEntries() {
                     eventName: 'generic_event_1',
                     genericTimestamp: 1234567890123,
                 },
-                trace: 'Stack trace',
+                trace: 'Example stack trace',
             },
             {
                 afterPageLoadMs: 5000,
                 event: {
                     event: 'select_item',
                 },
-                trace: 'Stack trace',
+                trace: 'Example stack trace',
             },
             {
                 afterPageLoadMs: 5000,
                 event: {
                     genericProperty: null,
                 },
-                trace: 'Stack trace',
+                trace: 'Example stack trace',
             },
             {
                 afterPageLoadMs: 5000,
@@ -249,7 +249,7 @@ async function queryDataLayerEntries() {
                     url: 'https://www.example.com/',
                     userStatus: 'generic_Status',
                 },
-                trace: 'Stack trace',
+                trace: 'Example stack trace',
             },
             {
                 afterPageLoadMs: 5000,
@@ -260,7 +260,7 @@ async function queryDataLayerEntries() {
                     eventName: 'generic_event_3',
                     linkUrl: 'https://example.com/generic-product',
                 },
-                trace: 'Stack trace',
+                trace: 'Example stack trace',
             },
             {
                 afterPageLoadMs: 5000,
@@ -272,6 +272,7 @@ async function queryDataLayerEntries() {
                         },
                     },
                 },
+                trace: 'Example stack trace',
             },
         ];
     }
