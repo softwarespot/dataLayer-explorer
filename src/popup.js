@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const els = state.dom.eventsContainer.querySelectorAll('.event');
         for (const el of els) {
-            el.classList.add('active');
+            el.classList.add('show');
         }
     });
 
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     addEventListener(document, 'click', '.event-name', (event, targetEl) => {
         const eventEl = targetEl.closest('.event');
-        eventEl.classList.toggle('active');
+        eventEl.classList.toggle('show');
     });
 
     addEventListener(document, 'click', 'a', (event, targetEl) => {
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Links cannot be opened directly from a popup
+        // Links cannot be opened directly from a popup according to documentation
         event.stopPropogation();
         chrome.tabs.create({
             active: true,
@@ -124,6 +124,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (copyToClipboard(eventDecoded)) {
             animate(targetEl);
         }
+    });
+
+    addEventListener(document, 'click', '.event-info-btn', (event, targetEl) => {
+        animate(targetEl);
+        const eventEl = targetEl.closest('.event');
+        eventEl.classList.add('show');
+
+        // The event content is the next sibling in the DOM tree
+        const eventTraceEl = eventEl.nextElementSibling.querySelector('.event-info');
+        eventTraceEl.classList.toggle('show');
     });
 });
 
@@ -255,30 +265,34 @@ async function syncDataLayerEntries() {
         const entry = entries[state.currEventsIndex];
         const entryIdx = state.currEventsIndex + 1;
         const event = JSON.stringify(entry.event, null, 2);
+        const afterPageLoad = toDurationString(entry.afterPageLoadMs);
 
         const isGTMHistoryChangeV2 = entry.event?.event === 'gtm.historyChange-v2';
         const eventHTML = `
-        <div class="event ${isGTMHistoryChangeV2 ? 'page-change' : ''}" data-event=${extendedBtoa(event)}>
-            <div class="event-name" title="Event was sent ${toDurationString(
-                entry.afterPageLoadMs,
-            )} after the initial load of the page.">
+        <div class="event ${isGTMHistoryChangeV2 ? 'page-change' : ''}" data-event="${extendedBtoa(event)}">
+            <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load.">
                 <span class="event-index">${entryIdx}</span>
                 ${getEventName(entry.event)}
             </div>
             <div class="event-btns">
                 ${getGA4EventIcon(entry.event)}
                 <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">
-                    <span style="font-size: .875em; left: -.125em; margin-right: .125em; position: relative; top: -.15em;">
-                        📄
-                        <span style="left: .15em; position: absolute; top: .15em;">
-                            📄
-                        </span>
-                    </span>
+                    📋
+                </button>
+                <button class="eye-icon event-info-btn btn" title="Display advanced information about the event.">
+                    👁
                 </button>
             </div>
         </div>
         <div class="event-content">
             <pre>${syntaxHighlight(event)}</pre>
+            <div class="event-info">
+                <hr />
+                <h2>Advanced information</h2>
+                <p>The event was sent ${afterPageLoad} after the initial page load.</p>
+                <h3>Stack trace</h3>
+                <pre style="font-size: 1em">${entry.trace}</pre>
+            </div>
         </div>
     `;
         state.dom.eventsContainer.insertAdjacentHTML('afterbegin', eventHTML);

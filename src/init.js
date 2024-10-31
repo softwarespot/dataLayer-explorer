@@ -15,11 +15,14 @@
         const sendEvent = registerSendEventToContentScript();
         const dataLayer = await dataLayerLoaded();
         for (const event of dataLayer) {
-            sendEvent(event);
+            const trace = getTrace();
+            sendEvent(event, trace);
         }
         dataLayer.push = new Proxy(dataLayer.push, {
             apply(target, thisArg, args) {
-                sendEvent(args[0]);
+                const event = args[0];
+                const trace = getTrace();
+                sendEvent(event, trace);
                 return Reflect.apply(target, thisArg, args);
             },
         });
@@ -69,14 +72,20 @@
             entries.length = 0;
         }, 256);
 
-        return (event) => {
+        return (event, trace) => {
             const afterPageLoadMs = Date.now() - window.performance.timeOrigin;
             entries.push({
                 afterPageLoadMs: Math.abs(afterPageLoadMs),
                 event,
+                trace,
             });
             deferSendEntries();
         };
+    }
+
+    function getTrace() {
+        const err = new Error();
+        return err.stack;
     }
 
     function safeJSONStringify(obj) {

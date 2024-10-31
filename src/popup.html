@@ -51,14 +51,16 @@
                 color: var(--dark-text-color);
                 cursor: pointer;
                 font-size: 1em;
-                padding: 5px;
                 transition: all 0.3s ease;
             }
 
             .ga4-icon {
-                position: relative;
-                top: 2.5px;
                 width: 16px;
+            }
+
+            .eye-icon {
+                color: var(--light-text-color);
+                margin-top: 2.5px;
             }
 
             .hide {
@@ -158,7 +160,7 @@
             }
 
             .event-btns {
-                align-items: flex-end;
+                align-items: center;
                 display: flex;
                 flex-direction: row;
                 padding: 5px;
@@ -172,12 +174,24 @@
                 padding: 10px 15px;
             }
 
-            .event.active + .event-content {
+            .event.hide + .event-content  {
+                display: none;
+            }
+
+            .event.show + .event-content {
                 display: block;
             }
 
-            .event.hide + .event-content {
+            .event-info {
                 display: none;
+            }
+
+            .event.show + .event-content .event-info.show {
+                display: block;
+            }
+
+            .event-content .event-info.show {
+                display: block;
             }
 
             .json-key {
