@@ -174,23 +174,20 @@
                 padding: 10px 15px;
             }
 
-            .event.hide + .event-content  {
-                display: none;
-            }
-
             .event.show + .event-content {
                 display: block;
+            }
+
+            /* This should be after ".event.show + .event-content" */
+            .event.hide + .event-content  {
+                display: none;
             }
 
             .event-info {
                 display: none;
             }
 
-            .event.show + .event-content .event-info.show {
-                display: block;
-            }
-
-            .event-content .event-info.show {
+            .event-info.show {
                 display: block;
             }
 
