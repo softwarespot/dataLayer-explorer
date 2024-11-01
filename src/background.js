@@ -57,7 +57,7 @@ function syncDataLayerStatus(tab, data) {
 
 // A utility function for supporting async/await in "onMessage".
 // If "undefined" is returned from the function, then the sender is not notified; otherwise, the sender is notified
-// with the data returned function the function.
+// with the data returned from the function.
 // See URL: https://stackoverflow.com/a/46628145 for more details
 function registerHandlerFromPopup(listenerFn) {
     chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
