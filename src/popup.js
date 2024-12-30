@@ -57,7 +57,7 @@ addEventListener(document, 'DOMContentLoaded', async () => {
     addEventListener(state.dom.search, 'input', async (event) => {
         const searchTerm = event.target.value;
         syncFilterDataLayerEntries(searchTerm);
-        deferSetSearchTerm();
+        deferSetSearchTerm(searchTerm);
     });
 
     addEventListener(state.dom.copyAllBtn, 'click', async (event) => {
@@ -175,14 +175,14 @@ async function syncSearchTermInput() {
 
 function registerSetSearchTerm() {
     if (ENVIRONMENT === 'development') {
-        return debounce(() => {
-            sessionStorage.setItem('popupSearchTerm', state.dom.search.value);
+        return debounce((searchTerm) => {
+            sessionStorage.setItem('popupSearchTerm', searchTerm);
         }, 256);
     }
 
-    return debounce(() => {
+    return debounce((searchTerm) => {
         chrome.storage.session.set({
-            popupSearchTerm: state.dom.search.value,
+            popupSearchTerm: searchTerm,
         });
     }, 256);
 }
