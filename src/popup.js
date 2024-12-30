@@ -378,10 +378,12 @@ function getFirstFlattenedKey(obj, depth = 2, currDepth = 1) {
 }
 
 function syncFilterDataLayerEntries(searchTerm) {
+    const normSearchTerm = searchTerm.toLowerCase();
     const els = state.dom.eventsContainer.querySelectorAll('.event');
     for (const el of els) {
         const eventDecoded = encodedAtob(el.getAttribute('data-event'));
-        if (eventDecoded.includes(searchTerm)) {
+        const normEventEncoded = eventDecoded.toLowerCase();
+        if (normEventEncoded.includes(normSearchTerm)) {
             el.classList.remove('hide');
         } else {
             el.classList.add('hide');
@@ -437,8 +439,6 @@ function addEventListener(el, eventName, selector, fn) {
         el.addEventListener(eventName, fn);
     }
     el.addEventListener(eventName, fn);
-
-    // Ignore creating a cleanup function
 }
 
 function createDelegationFunc(el, selector, fn) {
