@@ -383,12 +383,27 @@ function syncFilterDataLayerEntries(searchTerm) {
     for (const el of els) {
         const eventDecoded = encodedAtob(el.getAttribute('data-event'));
         const normEventEncoded = eventDecoded.toLowerCase();
-        if (normEventEncoded.includes(normSearchTerm)) {
+        if (isFuzzyMatch(normEventEncoded, normSearchTerm, 0.9)) {
             el.classList.remove('hide');
         } else {
             el.classList.add('hide');
         }
     }
+}
+
+function isFuzzyMatch(str, query, threshold = 1) {
+    let queryIdx = 0;
+    let matchCount = 0;
+
+    for (let i = 0; i < str.length && queryIdx < query.length; i++) {
+        if (str[i] === query[queryIdx]) {
+            matchCount++;
+            queryIdx++;
+        }
+    }
+
+    const matchRatio = matchCount / query.length;
+    return matchRatio >= threshold;
 }
 
 function jsonSyntaxHighlight(data) {
@@ -433,7 +448,7 @@ function animate(el) {
 
 function addEventListener(el, eventName, selector, fn) {
     if (isString(selector)) {
-        fn = createDelegationFunc(el, selector, fn);
+        fn = createDelegateEventHandler(el, selector, fn);
     } else {
         fn = selector;
         el.addEventListener(eventName, fn);
@@ -441,7 +456,7 @@ function addEventListener(el, eventName, selector, fn) {
     el.addEventListener(eventName, fn);
 }
 
-function createDelegationFunc(el, selector, fn) {
+function createDelegateEventHandler(el, selector, fn) {
     return (event) => {
         let targetEl = event.target;
         while (targetEl && targetEl.nodeType !== Node.DOCUMENT_NODE && el.contains(targetEl)) {
