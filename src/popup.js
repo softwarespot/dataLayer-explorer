@@ -397,8 +397,8 @@ function isFuzzyMatch(str, query, threshold = 1) {
 
     for (let i = 0; i < str.length && queryIdx < query.length; i++) {
         if (str[i] === query[queryIdx]) {
-            matchCount++;
             queryIdx++;
+            matchCount++;
         }
     }
 
