@@ -380,47 +380,46 @@ function getFirstFlattenedKey(obj, depth = 2, currDepth = 1) {
 
 function syncFilterDataLayerEntries(searchTerm) {
     const els = state.dom.eventsContainer.querySelectorAll('.event');
-    if (searchTerm === '') {
-        for (const el of els) {
-            el.classList.remove('hide');
-        }
-        state.dom.eventsStatus.classList.add('hide');
-        return;
-    }
-
-    let shownCount = 0;
-    const normSearchTerm = searchTerm.toLowerCase();
     for (const el of els) {
         const eventDecoded = encodedAtob(el.getAttribute('data-event'));
-        const normEventEncoded = eventDecoded.toLowerCase();
-        if (isFuzzyMatch(normEventEncoded, normSearchTerm, 1)) {
-            shownCount += 1;
+        if (isFuzzyMatching(eventDecoded, searchTerm, 0.9)) {
             el.classList.remove('hide');
         } else {
             el.classList.add('hide');
         }
     }
 
-    if (shownCount === 0) {
+    const hiddenEls = state.dom.eventsContainer.querySelectorAll('.event:not(.hide)');
+    if (hiddenEls.length === 0) {
         state.dom.eventsStatus.classList.remove('hide');
     } else {
         state.dom.eventsStatus.classList.add('hide');
     }
 }
 
-function isFuzzyMatch(str, query, threshold) {
-    let queryIdx = 0;
-    let matchCount = 0;
-
-    for (let i = 0; i < str.length && queryIdx < query.length; i++) {
-        if (str[i] === query[queryIdx]) {
-            queryIdx++;
-            matchCount++;
-        }
+function isFuzzyMatching(str, query, threshold) {
+    if (query.length === 0) {
+        return true;
     }
 
-    const matchRatio = matchCount / query.length;
-    return matchRatio >= threshold;
+    str = str.toLowerCase();
+    query = query.toLowerCase();
+
+    let matchCount = 0;
+    let queryIdx = 0;
+
+    for (const char of str) {
+        if (char === query[queryIdx]) {
+            matchCount++;
+            queryIdx++;
+        } else if (char === query[queryIdx - 1]) {
+            matchCount++;
+        }
+        if (queryIdx === query.length) {
+            break;
+        }
+    }
+    return matchCount / query.length >= threshold;
 }
 
 function jsonSyntaxHighlight(data) {
