@@ -32,11 +32,10 @@
                 return {
                     status: state.status,
                 };
-            case EVENT_GET_DATALAYER_ENTRIES: {
+            case EVENT_GET_DATALAYER_ENTRIES:
                 return {
                     entries: JSON.stringify(state.entries),
                 };
-            }
             default:
                 return undefined;
         }
