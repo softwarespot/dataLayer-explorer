@@ -22,6 +22,7 @@ const state = {
         expandAllBtn: document.getElementById('expand-all-btn'),
         collapseAllBtn: document.getElementById('collapse-all-btn'),
         refreshBtn: document.getElementById('refresh-btn'),
+        eventsStatus: document.getElementById('events-status'),
         status: document.getElementById('status'),
         eventsContainer: document.getElementById('events-container'),
     },
@@ -383,18 +384,27 @@ function syncFilterDataLayerEntries(searchTerm) {
         for (const el of els) {
             el.classList.remove('hide');
         }
+        state.dom.eventsStatus.classList.add('hide');
         return;
     }
 
+    let shownCount = 0;
     const normSearchTerm = searchTerm.toLowerCase();
     for (const el of els) {
         const eventDecoded = encodedAtob(el.getAttribute('data-event'));
         const normEventEncoded = eventDecoded.toLowerCase();
         if (isFuzzyMatch(normEventEncoded, normSearchTerm, 1)) {
+            shownCount += 1;
             el.classList.remove('hide');
         } else {
             el.classList.add('hide');
         }
+    }
+
+    if (shownCount === 0) {
+        state.dom.eventsStatus.classList.remove('hide');
+    } else {
+        state.dom.eventsStatus.classList.add('hide');
     }
 }
 
