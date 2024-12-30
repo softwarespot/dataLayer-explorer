@@ -454,23 +454,19 @@ function animate(el) {
 }
 
 function addEventListener(el, eventName, selector, fn) {
-    if (isString(selector)) {
+    if (isFunction(fn)) {
         fn = createDelegateEventHandler(el, selector, fn);
     } else {
         fn = selector;
-        el.addEventListener(eventName, fn);
     }
     el.addEventListener(eventName, fn);
 }
 
 function createDelegateEventHandler(el, selector, fn) {
     return (event) => {
-        let targetEl = event.target;
-        while (targetEl && targetEl.nodeType !== Node.DOCUMENT_NODE && el.contains(targetEl)) {
-            if (targetEl.matches(selector)) {
-                return fn(event, targetEl);
-            }
-            targetEl = targetEl.parentNode;
+        const targetEl = event.target.closest(selector);
+        if (targetEl && el.contains(targetEl)) {
+            fn(event, targetEl);
         }
     };
 }
@@ -499,6 +495,10 @@ function copyToClipboard(text) {
         document.body.removeChild(el);
     }
     return false;
+}
+
+function isFunction(obj) {
+    return typeof obj === 'function';
 }
 
 function isObject(obj) {
