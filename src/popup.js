@@ -378,8 +378,15 @@ function getFirstFlattenedKey(obj, depth = 2, currDepth = 1) {
 }
 
 function syncFilterDataLayerEntries(searchTerm) {
-    const normSearchTerm = searchTerm.toLowerCase();
     const els = state.dom.eventsContainer.querySelectorAll('.event');
+    if (searchTerm === '') {
+        for (const el of els) {
+            el.classList.remove('hide');
+        }
+        return;
+    }
+
+    const normSearchTerm = searchTerm.toLowerCase();
     for (const el of els) {
         const eventDecoded = encodedAtob(el.getAttribute('data-event'));
         const normEventEncoded = eventDecoded.toLowerCase();
@@ -391,7 +398,7 @@ function syncFilterDataLayerEntries(searchTerm) {
     }
 }
 
-function isFuzzyMatch(str, query, threshold = 1) {
+function isFuzzyMatch(str, query, threshold) {
     let queryIdx = 0;
     let matchCount = 0;
 
