@@ -390,7 +390,7 @@ function syncFilterDataLayerEntries(searchTerm) {
     for (const el of els) {
         const eventDecoded = encodedAtob(el.getAttribute('data-event'));
         const normEventEncoded = eventDecoded.toLowerCase();
-        if (isFuzzyMatch(normEventEncoded, normSearchTerm, 0.9)) {
+        if (isFuzzyMatch(normEventEncoded, normSearchTerm, 1)) {
             el.classList.remove('hide');
         } else {
             el.classList.add('hide');
