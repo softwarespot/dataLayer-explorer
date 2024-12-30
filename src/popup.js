@@ -382,7 +382,7 @@ function syncFilterDataLayerEntries(searchTerm) {
     const els = state.dom.eventsContainer.querySelectorAll('.event');
     for (const el of els) {
         const eventDecoded = encodedAtob(el.getAttribute('data-event'));
-        if (isFuzzyMatching(eventDecoded, searchTerm, 1)) {
+        if (isMatching(eventDecoded, searchTerm)) {
             el.classList.remove('hide');
         } else {
             el.classList.add('hide');
@@ -397,7 +397,7 @@ function syncFilterDataLayerEntries(searchTerm) {
     }
 }
 
-function isFuzzyMatching(str, query, threshold) {
+function isMatching(str, query) {
     if (query.length === 0) {
         return true;
     }
@@ -405,26 +405,7 @@ function isFuzzyMatching(str, query, threshold) {
     str = str.toLowerCase();
     query = query.toLowerCase();
 
-    let strIdx = 0;
-    let matchScore = 0;
-    let queryIdx = 0;
-    let consecutiveMatches = 0;
-
-    while (strIdx < str.length && queryIdx < query.length) {
-        if (str[strIdx] === query[queryIdx]) {
-            matchScore += 1 + consecutiveMatches * 0.5;
-            queryIdx++;
-            consecutiveMatches++;
-        } else {
-            consecutiveMatches = 0;
-        }
-        strIdx++;
-    }
-
-    const maxScore = query.length * 1.5 - 0.5;
-    const matchRatio = matchScore / maxScore;
-
-    return matchRatio >= threshold;
+    return str.includes(query);
 }
 
 function jsonSyntaxHighlight(data) {
