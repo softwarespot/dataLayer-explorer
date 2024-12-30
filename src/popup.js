@@ -29,7 +29,7 @@ const state = {
 };
 /* eslint-enable sort-keys-fix/sort-keys-fix */
 
-document.addEventListener('DOMContentLoaded', async () => {
+addEventListener(document, 'DOMContentLoaded', async () => {
     await syncAppVersion();
     await syncSearchTermInput();
 
@@ -54,13 +54,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Create DOM event handlers
     const deferSetSearchTerm = registerSetSearchTerm();
-    state.dom.search.addEventListener('input', async (event) => {
+    addEventListener(state.dom.search, 'input', async (event) => {
         const searchTerm = event.target.value;
         syncFilterDataLayerEntries(searchTerm);
         deferSetSearchTerm();
     });
 
-    state.dom.copyAllBtn.addEventListener('click', async (event) => {
+    addEventListener(state.dom.copyAllBtn, 'click', async (event) => {
         const events = [];
         const els = state.dom.eventsContainer.querySelectorAll('.event');
         for (const el of els) {
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    state.dom.expandAllBtn.addEventListener('click', async (event) => {
+    addEventListener(state.dom.expandAllBtn, 'click', async (event) => {
         animate(event.target);
 
         const els = state.dom.eventsContainer.querySelectorAll('.event');
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    state.dom.collapseAllBtn.addEventListener('click', async (event) => {
+    addEventListener(state.dom.collapseAllBtn, 'click', async (event) => {
         animate(event.target);
 
         const els = state.dom.eventsContainer.querySelectorAll('.event');
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    state.dom.refreshBtn.addEventListener('click', async (event) => {
+    addEventListener(state.dom.refreshBtn, 'click', async (event) => {
         animate(event.target);
 
         await syncDataLayerEntries();
@@ -430,7 +430,19 @@ function animate(el) {
 }
 
 function addEventListener(el, eventName, selector, fn) {
-    el.addEventListener(eventName, (event) => {
+    if (isString(selector)) {
+        fn = createDelegationFunc(el, selector, fn);
+    } else {
+        fn = selector;
+        el.addEventListener(eventName, fn);
+    }
+    el.addEventListener(eventName, fn);
+
+    // Ignore creating a cleanup function
+}
+
+function createDelegationFunc(el, selector, fn) {
+    return (event) => {
         let targetEl = event.target;
         while (targetEl && targetEl.nodeType !== Node.DOCUMENT_NODE && el.contains(targetEl)) {
             if (targetEl.matches(selector)) {
@@ -438,7 +450,7 @@ function addEventListener(el, eventName, selector, fn) {
             }
             targetEl = targetEl.parentNode;
         }
-    });
+    };
 }
 
 // Taken from URL: https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
