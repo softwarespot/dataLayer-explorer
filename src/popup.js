@@ -406,8 +406,8 @@ function isFuzzyMatching(str, query, threshold) {
     query = query.toLowerCase();
 
     let strIdx = 0;
-    let queryIdx = 0;
     let matchScore = 0;
+    let queryIdx = 0;
     let consecutiveMatches = 0;
 
     while (strIdx < str.length && queryIdx < query.length) {
