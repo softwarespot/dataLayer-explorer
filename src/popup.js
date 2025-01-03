@@ -42,12 +42,11 @@ addEventListener(document, 'DOMContentLoaded', async () => {
     const status = await queryDataLayerStatus();
     switch (status) {
         case EVENT_DATALAYER_FOUND: {
-            state.dom.status.classList.add('hide');
-
             const els = document.querySelectorAll('.hide');
             for (const el of els) {
                 el.classList.remove('hide');
             }
+            state.dom.status.classList.add('hide');
 
             await syncDataLayerEntries();
             registerSyncDataLayerEntries();
