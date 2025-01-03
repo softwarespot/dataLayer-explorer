@@ -26,13 +26,18 @@ const state = {
         status: document.getElementById('status'),
         eventsContainer: document.getElementById('events-container'),
     },
+    config: {
+        searchTerm: '',
+        expandedAll: false,
+    },
     currEventsIndex: 0,
 };
 /* eslint-enable sort-keys-fix/sort-keys-fix */
 
 addEventListener(document, 'DOMContentLoaded', async () => {
+    await initConfig();
     await syncAppVersion();
-    await syncSearchTermInput();
+    await syncSearchTermInput(state.config.searchTerm);
 
     const status = await queryDataLayerStatus();
     switch (status) {
@@ -81,6 +86,10 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         for (const el of els) {
             el.classList.add('show');
         }
+
+        syncConfig({
+            expandedAll: true,
+        });
     });
 
     addEventListener(state.dom.collapseAllBtn, 'click', async (event) => {
@@ -90,6 +99,10 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         for (const el of els) {
             el.classList.remove('show');
         }
+
+        syncConfig({
+            expandedAll: false,
+        });
     });
 
     addEventListener(state.dom.refreshBtn, 'click', async (event) => {
@@ -135,14 +148,49 @@ addEventListener(document, 'DOMContentLoaded', async () => {
     });
 });
 
-async function syncAppVersion() {
+async function initConfig() {
     if (ENVIRONMENT === 'development') {
-        state.dom.title.setAttribute('title', `${state.dom.title.textContent} v0.0.0`);
+        const res = sessionStorage.getItem('config');
+        if (res) {
+            const cfg = JSON.parse(res);
+            state.config = {
+                ...state.config,
+                ...cfg,
+            };
+        }
         return;
     }
 
-    const manifest = chrome.runtime.getManifest();
-    state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${manifest.version}`);
+    const res = await chrome.storage.session.get(['config']);
+    if (res.config) {
+        state.config = {
+            ...state.config,
+            ...res.config,
+        };
+    }
+}
+
+async function syncConfig(cfgPartial) {
+    state.config = {
+        ...state.config,
+        ...cfgPartial,
+    };
+    if (ENVIRONMENT === 'development') {
+        sessionStorage.setItem('config', JSON.stringify(state.config));
+    } else {
+        chrome.storage.session.set({
+            config: state.config,
+        });
+    }
+}
+
+async function syncAppVersion() {
+    if (ENVIRONMENT === 'development') {
+        state.dom.title.setAttribute('title', `${state.dom.title.textContent} v0.0.0`);
+    } else {
+        const manifest = chrome.runtime.getManifest();
+        state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${manifest.version}`);
+    }
 }
 
 function registerSyncDataLayerEntries() {
@@ -163,27 +211,14 @@ function registerSyncDataLayerEntries() {
     syncDataLayerEntriesChecker();
 }
 
-async function syncSearchTermInput() {
-    if (ENVIRONMENT === 'development') {
-        const searchTerm = sessionStorage.getItem('popupSearchTerm');
-        state.dom.search.value = searchTerm ?? '';
-        return;
-    }
-
-    const res = await chrome.storage.session.get(['popupSearchTerm']);
-    state.dom.search.value = res.popupSearchTerm ?? '';
+async function syncSearchTermInput(searchTerm) {
+    state.dom.search.value = searchTerm;
 }
 
 function registerSetSearchTerm() {
-    if (ENVIRONMENT === 'development') {
-        return debounce((searchTerm) => {
-            sessionStorage.setItem('popupSearchTerm', searchTerm);
-        }, 256);
-    }
-
     return debounce((searchTerm) => {
-        chrome.storage.session.set({
-            popupSearchTerm: searchTerm,
+        syncConfig({
+            searchTerm,
         });
     }, 256);
 }
@@ -291,8 +326,13 @@ async function syncDataLayerEntries() {
         const afterPageLoad = toDurationString(entry.afterPageLoadMs);
 
         const isGTMHistoryChangeV2 = entry.event?.event === 'gtm.historyChange-v2';
+        const evtClassNames = [
+            'event',
+            isGTMHistoryChangeV2 ? 'page-change' : '',
+            state.config.expandedAll ? 'show' : '',
+        ];
         const eventHTML = `
-        <div class="event ${isGTMHistoryChangeV2 ? 'page-change' : ''}" data-event="${encodedBtoa(event)}">
+        <div class="${evtClassNames.join(' ')}" data-event="${encodedBtoa(event)}">
             <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load.">
                 <span class="event-index">${entryIdx}</span>
                 ${getEventName(entry.event)}
