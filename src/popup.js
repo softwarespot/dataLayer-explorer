@@ -133,22 +133,21 @@ addEventListener(document, 'DOMContentLoaded', async () => {
 async function initConfig() {
     if (ENVIRONMENT === 'development') {
         const res = sessionStorage.getItem('config');
-        if (res) {
+        if (isString(res)) {
             const cfg = JSON.parse(res);
             state.config = {
                 ...state.config,
                 ...cfg,
             };
         }
-        return;
-    }
-
-    const res = await chrome.storage.session.get(['config']);
-    if (res.config) {
-        state.config = {
-            ...state.config,
-            ...res.config,
-        };
+    } else {
+        const res = await chrome.storage.session.get(['config']);
+        if (isObject(res.config)) {
+            state.config = {
+                ...state.config,
+                ...res.config,
+            };
+        }
     }
 }
 
