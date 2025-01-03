@@ -98,12 +98,35 @@
             if (isConstructor(value, HTMLElement)) {
                 return value.outerHTML;
             }
+            if (isConstructor(value, Map)) {
+                return {
+                    dataType: 'Map',
+                    value: Array.from(value.entries()),
+                };
+            }
             if (isConstructor(value, RegExp)) {
                 return value.toString();
+            }
+            if (isConstructor(value, Set)) {
+                return {
+                    dataType: 'Set',
+                    value: Array.from(value.values()),
+                };
+            }
+
+            if (value === Infinity) {
+                return 'Infinity';
+            }
+            if (value === -Infinity) {
+                return '-Infinity';
+            }
+            if (Number.isNaN(value)) {
+                return 'NaN';
             }
             if (isBigInt(value)) {
                 return `${value.toString()}n`;
             }
+
             if (isFunction(value)) {
                 return value.toString();
             }
