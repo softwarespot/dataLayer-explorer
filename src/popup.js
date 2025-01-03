@@ -28,7 +28,7 @@ const state = {
     },
     config: {
         searchTerm: '',
-        expandedAll: false,
+        expandAll: false,
     },
     currEventsIndex: 0,
 };
@@ -79,30 +79,12 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         }
     });
 
-    addEventListener(state.dom.expandAllBtn, 'click', async (event) => {
-        animate(event.target);
-
-        const els = state.dom.eventsContainer.querySelectorAll('.event');
-        for (const el of els) {
-            el.classList.add('show');
-        }
-
-        syncConfig({
-            expandedAll: true,
-        });
+    addEventListener(state.dom.expandAllBtn, 'click', (event) => {
+        syncDataLayerEntriesData(event, true);
     });
 
-    addEventListener(state.dom.collapseAllBtn, 'click', async (event) => {
-        animate(event.target);
-
-        const els = state.dom.eventsContainer.querySelectorAll('.event');
-        for (const el of els) {
-            el.classList.remove('show');
-        }
-
-        syncConfig({
-            expandedAll: false,
-        });
+    addEventListener(state.dom.collapseAllBtn, 'click', (event) => {
+        syncDataLayerEntriesData(event, false);
     });
 
     addEventListener(state.dom.refreshBtn, 'click', async (event) => {
@@ -170,7 +152,7 @@ async function initConfig() {
     }
 }
 
-async function syncConfig(cfgPartial) {
+function syncConfig(cfgPartial) {
     state.config = {
         ...state.config,
         ...cfgPartial,
@@ -221,6 +203,23 @@ function registerSetSearchTerm() {
             searchTerm,
         });
     }, 256);
+}
+
+function syncDataLayerEntriesData(event, expandAll) {
+    animate(event.target);
+
+    const els = state.dom.eventsContainer.querySelectorAll('.event');
+    for (const el of els) {
+        if (expandAll) {
+            el.classList.add('show');
+        } else {
+            el.classList.remove('show');
+        }
+    }
+
+    syncConfig({
+        expandAll,
+    });
 }
 
 async function queryDataLayerStatus() {
@@ -329,7 +328,7 @@ async function syncDataLayerEntries() {
         const evtClassNames = [
             'event',
             isGTMHistoryChangeV2 ? 'page-change' : '',
-            state.config.expandedAll ? 'show' : '',
+            state.config.expandAll ? 'show' : '',
         ];
         const eventHTML = `
         <div class="${evtClassNames.join(' ')}" data-event="${encodedBtoa(event)}">
