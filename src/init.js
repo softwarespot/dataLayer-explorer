@@ -92,8 +92,17 @@
     function safeJSONStringify(obj) {
         const seen = new WeakSet();
         return JSON.stringify(obj, (_, value) => {
-            if (value instanceof HTMLElement) {
+            if (isConstructor(value, Date)) {
+                return value.toISOString();
+            }
+            if (isConstructor(value, HTMLElement)) {
                 return value.outerHTML;
+            }
+            if (isConstructor(value, RegExp)) {
+                return value.toString();
+            }
+            if (isBigInt(value)) {
+                return `${value.toString()}n`;
             }
             if (isFunction(value)) {
                 return value.toString();
@@ -106,6 +115,14 @@
             }
             return value;
         });
+    }
+
+    function isConstructor(obj, constructor) {
+        return obj instanceof constructor;
+    }
+
+    function isBigInt(obj) {
+        return typeof obj === 'bigint';
     }
 
     function isFunction(obj) {
