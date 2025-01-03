@@ -80,11 +80,11 @@ addEventListener(document, 'DOMContentLoaded', async () => {
     });
 
     addEventListener(state.dom.expandAllBtn, 'click', (event) => {
-        syncDataLayerEntriesData(event, true);
+        syncDataLayerEntriesCollapsable(event, true);
     });
 
     addEventListener(state.dom.collapseAllBtn, 'click', (event) => {
-        syncDataLayerEntriesData(event, false);
+        syncDataLayerEntriesCollapsable(event, false);
     });
 
     addEventListener(state.dom.refreshBtn, 'click', async (event) => {
@@ -205,7 +205,7 @@ function registerSetSearchTerm() {
     }, 256);
 }
 
-function syncDataLayerEntriesData(event, expandAll) {
+function syncDataLayerEntriesCollapsable(event, expandAll) {
     animate(event.target);
 
     const els = state.dom.eventsContainer.querySelectorAll('.event');
