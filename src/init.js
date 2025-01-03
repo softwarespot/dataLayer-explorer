@@ -14,10 +14,11 @@
     try {
         const sendEvent = registerSendEventToContentScript();
         const dataLayer = await dataLayerLoaded();
+        const trace = getTrace();
         for (const event of dataLayer) {
-            const trace = getTrace();
             sendEvent(event, trace);
         }
+
         dataLayer.push = new Proxy(dataLayer.push, {
             apply(target, thisArg, args) {
                 const event = args[0];
