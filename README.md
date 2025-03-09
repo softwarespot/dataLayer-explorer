@@ -12,12 +12,12 @@
 
 ## Features
 
-- **Access detailed data effortlessly.** View a comprehensive list of events, each expandable to reveal rich, detailed information. The intuitive interface allows for quick navigation through events, ensuring important insights are easily accessible.
-- **Identify GA4 events quickly.** A visual indicator <img src="./src/icons/ga4.svg" width="16" height="16" /> helps distinguish Google Analytics 4 (GA4) events, making it simpler to focus on relevant data.
-- **Facilitate sharing.** The "Copy" function enables easy copying of event details to the clipboard for quick access or sharing with team members, streamlining collaboration.
-- **Analyze event timing precisely.** Gain insights into the time elapsed between page load and each event push by simply hovering over the event name. This feature enables detailed analysis of event timing, contributing to a deeper understanding of site performance and user experience. Such precise timing information can be invaluable for optimizing page load sequences and improving overall site responsiveness.
-- **Stay updated with ease.** The extension features a refresh button that allows users to update the events list manually, ensuring access to the latest data whenever needed.
-- **Open Source advantage**. This extension is open source, allowing users to benefit from community-driven development and transparency. By being open source, it ensures that anyone can contribute to its improvement, fostering innovation and responsiveness to user needs.
+- **Access detailed data effortlessly** View a comprehensive list of events, each expandable to reveal rich, detailed information. The intuitive interface allows for quick navigation through events, ensuring important insights are easily accessible.
+- **Identify GA4 events quickly** A visual indicator <img src="./src/icons/ga4.svg" width="16" height="16" /> helps distinguish Google Analytics 4 (GA4) events, making it simpler to focus on relevant data.
+- **Facilitate sharing** The "Copy" function enables easy copying of event details to the clipboard for quick access or sharing with team members, streamlining collaboration.
+- **Analyze event timing precisely** Gain insights into the time elapsed between page load and each event push by simply hovering over the event name. This feature enables detailed analysis of event timing, contributing to a deeper understanding of site performance and user experience. Such precise timing information can be invaluable for optimizing page load sequences and improving overall site responsiveness.
+- **Stay updated with ease** The extension features a refresh button that allows users to update the events list manually, ensuring access to the latest data whenever needed.
+- **Open Source advantage** This extension is open source, allowing users to benefit from community-driven development and transparency. By being open source, it ensures that anyone can contribute to its improvement, fostering innovation and responsiveness to user needs.
 
 ## Installation
 
