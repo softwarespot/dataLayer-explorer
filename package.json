@@ -12,13 +12,13 @@
         "start": "PORT=8100 node ./scripts/dev_server.js"
     },
     "devDependencies": {
-        "@eslint/js": "^9.22.0",
+        "@eslint/js": "^9.23.0",
         "crx": "^5.0.1",
-        "eslint": "^9.22.0",
+        "eslint": "^9.23.0",
         "eslint-config-prettier": "^10.1.1",
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-n": "^17.16.2",
-        "eslint-plugin-prettier": "^5.2.3",
+        "eslint-plugin-prettier": "^5.2.4",
         "eslint-plugin-promise": "^7.2.1",
         "eslint-plugin-security": "^3.0.1",
         "eslint-plugin-simple-import-sort": "^12.1.1",
