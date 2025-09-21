@@ -69,7 +69,9 @@
                     fn(dataLayerInfo.name, dataLayer);
 
                     // Resolve when at least one dataLayer has been found
-                    withResolvers.resolve();
+                    if (state.total === 1) {
+                        withResolvers.resolve();
+                    }
                 }
             }
             if (state.total === state.dataLayerInfos.length) {
