@@ -62,17 +62,28 @@
 
             /* Icon styles */
             .ga4-icon,
-            .matomo-icon {
+            .matomo-icon,
+            .eye-icon,
+            .event-copy-btn {
                 width: 16px;
+                height: 19px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
             }
 
+            .ga4-icon,
             .matomo-icon {
-                margin-top: 5px;
+                object-fit: contain;
             }
 
-            .eye-icon {
+            .eye-icon,
+            .event-copy-btn {
                 color: var(--light-text-color);
-                margin-top: 2.5px;
+            }
+
+            .event-copy-btn {
+                transform: translateY(-3.5px);
             }
 
             /* Header styles */
@@ -171,6 +182,7 @@
             .event-btns {
                 align-items: center;
                 display: flex;
+                gap: 8px;
                 padding: 5px;
             }
 
@@ -225,6 +237,7 @@
                 100% {
                     transform: scale(1);
                 }
+
                 50% {
                     transform: scale(0.75);
                 }
