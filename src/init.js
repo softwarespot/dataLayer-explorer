@@ -62,7 +62,7 @@
                 }
 
                 const dataLayer = window[dataLayerInfo.name];
-                if (Array.isArray(dataLayer)) {
+                if (isValidDataLayer(dataLayer)) {
                     state.total++;
 
                     dataLayerInfo.found = true;
@@ -94,6 +94,19 @@
         }, timeout);
 
         return withResolvers.promise;
+    }
+
+    function isValidDataLayer(dataLayer) {
+        if (!Array.isArray(dataLayer)) {
+            return false;
+        }
+        if (!isFunction(dataLayer.push)) {
+            return false;
+        }
+        if (Object.isFrozen(dataLayer) || Object.isSealed(dataLayer)) {
+            return false;
+        }
+        return true;
     }
 
     // Defer sending the entries to the "contentScript.js", if multiple entries are being pushed in a short timeframe.
