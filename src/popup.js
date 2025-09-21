@@ -104,7 +104,7 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         }
 
         // Links cannot be opened directly from a popup according to documentation
-        event.stopPropogation();
+        event.stopPropagation();
         chrome.tabs.create({
             active: true,
             url: targetEl.href,
