@@ -40,6 +40,7 @@ export default [
 
             // NOTE: Currently broken. URL: https://github.com/import-js/eslint-plugin-import/issues/3082
             'n/no-unpublished-import': 'off',
+            'n/no-unsupported-features/es-syntax': 'off',
 
             'prettier/prettier': [
                 'error',

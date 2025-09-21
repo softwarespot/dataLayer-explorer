@@ -255,6 +255,7 @@ async function queryDataLayerEntries() {
                     eventName: 'generic_event_1',
                     genericTimestamp: 1234567890123,
                 },
+                name: 'dataLayer',
                 trace: 'Example stack trace',
             },
             {
@@ -262,6 +263,7 @@ async function queryDataLayerEntries() {
                 event: {
                     event: 'select_item',
                 },
+                name: 'dataLayer',
                 trace: 'Example stack trace',
             },
             {
@@ -269,6 +271,7 @@ async function queryDataLayerEntries() {
                 event: {
                     genericProperty: null,
                 },
+                name: 'dataLayer',
                 trace: 'Example stack trace',
             },
             {
@@ -282,6 +285,7 @@ async function queryDataLayerEntries() {
                     url: 'https://www.example.com/',
                     userStatus: 'generic_Status',
                 },
+                name: 'dataLayer',
                 trace: 'Example stack trace',
             },
             {
@@ -293,6 +297,7 @@ async function queryDataLayerEntries() {
                     eventName: 'generic_event_3',
                     linkUrl: 'https://example.com/generic-product',
                 },
+                name: 'dataLayer',
                 trace: 'Example stack trace',
             },
             {
@@ -305,6 +310,20 @@ async function queryDataLayerEntries() {
                         },
                     },
                 },
+                name: 'dataLayer',
+                trace: 'Example stack trace',
+            },
+            {
+                afterPageLoadMs: 5000,
+                event: {
+                    mtmObject: {
+                        mtmView: {
+                            items: [],
+                            mode: '',
+                        },
+                    },
+                },
+                name: '_mtm',
                 trace: 'Example stack trace',
             },
         ];
@@ -331,12 +350,12 @@ async function syncDataLayerEntries() {
         ];
         const eventHTML = `
         <div class="${evtClassNames.join(' ')}" data-event="${encodedBtoa(event)}">
-            <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load.">
+            <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load and is available from window.${entry.name}.">
                 <span class="event-index">${entryIdx}</span>
                 ${getEventName(entry.event)}
             </div>
             <div class="event-btns">
-                ${getEventIconGA4(entry.event)}
+                ${getEventIcon(entry)}
                 <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">&#128203;</button>
                 <button class="eye-icon event-advanced-info-btn btn" title="Display advanced information about the event.">&#128065;</button>
             </div>
@@ -346,7 +365,7 @@ async function syncDataLayerEntries() {
             <div class="event-advanced-info">
                 <hr />
                 <h2>Advanced information</h2>
-                <p>The event was sent ${afterPageLoad} after the initial page load.</p>
+                <p>The event was sent ${afterPageLoad} after the initial page load and is available from <code>window.${entry.name}</code>.</p>
                 <h3>Stack trace</h3>
                 <pre style="font-size: 1em">${entry.trace}</pre>
             </div>
@@ -378,20 +397,32 @@ function getEventName(obj) {
     return 'unknown data';
 }
 
-function getEventIconGA4(obj) {
-    if (!isObject(obj) || !isString(obj.event)) {
-        return '';
-    }
+function getEventIcon(entry) {
+    switch (entry.name) {
+        case 'dataLayer': {
+            if (!isObject(entry.event) || !isString(entry.event)) {
+                return '';
+            }
 
-    const eventInfo = GA.getEventInfo(obj.event);
-    if (!isObject(eventInfo)) {
-        return '';
+            const eventInfo = GA.getEventInfo(entry.event);
+            if (!isObject(eventInfo)) {
+                return '';
+            }
+            return `
+                <a href="${eventInfo.url}" class="btn" title="This is a Google Analytics 4 (GA4) event." target="_blank" rel="noopener noreferrer">
+                    <img src="./icons/ga4.svg" class="ga4-icon" />
+                </a>
+            `;
+        }
+        case '_mtm':
+            return `
+                <a href="https://developer.matomo.org/" class="btn" title="This is a Matomo event." target="_blank" rel="noopener noreferrer">
+                    <img src="./icons/matomo.svg" class="matomo-icon" />
+                </a>
+            `;
+        default:
+            return '';
     }
-    return `
-        <a href="${eventInfo.url}" class="btn" title="This is a Google Analytics 4 (GA4) event." target="_blank" rel="noopener noreferrer">
-            <img src="./icons/ga4.svg" class="ga4-icon" />
-        </a>
-    `;
 }
 
 function getFirstFlattenedKey(obj, depth = 2, currDepth = 1) {

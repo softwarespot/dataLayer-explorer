@@ -13,19 +13,20 @@
     const sendToContentScript = registerSender(SOURCE_FROM_INIT, SOURCE_FROM_CONTENT_SCRIPT);
     try {
         const sendEvent = registerSendEventToContentScript();
-        const dataLayer = await dataLayerLoaded();
-        const trace = getTrace();
-        for (const event of dataLayer) {
-            sendEvent(event, trace);
-        }
+        await dataLayersLoaded((name, dataLayer) => {
+            const trace = getTrace();
+            for (const event of dataLayer) {
+                sendEvent(name, event, trace);
+            }
 
-        dataLayer.push = new Proxy(dataLayer.push, {
-            apply(target, thisArg, args) {
-                const event = args[0];
-                const trace = getTrace();
-                sendEvent(event, trace);
-                return Reflect.apply(target, thisArg, args);
-            },
+            dataLayer.push = new Proxy(dataLayer.push, {
+                apply(target, thisArg, args) {
+                    const event = args[0];
+                    const trace = getTrace();
+                    sendEvent(name, event, trace);
+                    return Reflect.apply(target, thisArg, args);
+                },
+            });
         });
 
         console.log(MODULE, '"init.js" has initialized, dataLayer is available');
@@ -37,32 +38,66 @@
         console.info(MODULE, err instanceof Error ? err.message : 'An unexpected error occurred');
     }
 
-    async function dataLayerLoaded(timeout = 4096) {
-        return new Promise((resolve, reject) => {
-            let timerId = 0;
-            function dataLayerLoadedChecker() {
-                if (Array.isArray(window.dataLayer)) {
-                    resolve(window.dataLayer);
+    async function dataLayersLoaded(fn, timeout = 4096) {
+        const withResolvers = Promise.withResolvers();
+        const state = {
+            dataLayerInfos: [
+                {
+                    name: 'dataLayer',
+                    found: false,
+                },
+                {
+                    name: '_mtm',
+                    found: false,
+                },
+            ],
+            foundTotal: 0,
+            timerId: 0,
+        };
+
+        function dataLayersLoadedChecker() {
+            for (const dataLayerInfo of state.dataLayerInfos) {
+                if (dataLayerInfo.found) {
+                    continue;
+                }
+
+                const dataLayer = window[dataLayerInfo.name];
+                if (Array.isArray(dataLayer)) {
+                    state.foundTotal++;
+
+                    dataLayerInfo.found = true;
+                    fn(dataLayerInfo.name, dataLayer);
+
+                    // Resolve when at least one dataLayer has been found
+                    withResolvers.resolve();
+                }
+
+                if (state.foundTotal === state.dataLayerInfos.length) {
                     return;
                 }
-                timerId = setTimeout(dataLayerLoadedChecker, 256);
+                state.timerId = setTimeout(dataLayersLoadedChecker, 256);
+            }
+        }
+
+        dataLayersLoadedChecker();
+
+        setTimeout(() => {
+            if (state.foundTotal > 0) {
+                return;
             }
 
-            dataLayerLoadedChecker();
+            withResolvers.reject(
+                new Error(
+                    `Waiting for dataLayer in "init.js" timed out after ${timeout}ms, possibly due to dataLayer not being available on the site`,
+                ),
+            );
+            clearTimeout(state.timerId);
+        }, timeout);
 
-            setTimeout(() => {
-                reject(
-                    new Error(
-                        `Waiting for dataLayer in "init.js" timed out after ${timeout}ms, possibly due to dataLayer not being available on the site`,
-                    ),
-                );
-                clearTimeout(timerId);
-            }, timeout);
-        });
+        return withResolvers.promise;
     }
 
-    // Defer sending the entries to the "contentScript.js", if multiple entries are being pushed
-    // in a short timeframe.
+    // Defer sending the entries to the "contentScript.js", if multiple entries are being pushed in a short timeframe.
     // This is to limit the affect on the site's performance
     function registerSendEventToContentScript() {
         const entries = [];
@@ -73,10 +108,11 @@
             entries.length = 0;
         }, 256);
 
-        return (event, trace) => {
+        return (name, event, trace) => {
             const afterPageLoadMs = Date.now() - window.performance.timeOrigin;
             entries.push({
                 afterPageLoadMs: Math.abs(afterPageLoadMs),
+                name,
                 event,
                 trace,
             });
