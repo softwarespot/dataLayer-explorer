@@ -82,15 +82,14 @@
         dataLayersLoadedChecker();
 
         setTimeout(() => {
-            if (state.foundTotal > 0) {
-                return;
+            if (state.foundTotal === 0) {
+                withResolvers.reject(
+                    new Error(
+                        `Waiting for dataLayer in "init.js" timed out after ${timeout}ms, possibly due to dataLayer not being available on the site`,
+                    ),
+                );
             }
 
-            withResolvers.reject(
-                new Error(
-                    `Waiting for dataLayer in "init.js" timed out after ${timeout}ms, possibly due to dataLayer not being available on the site`,
-                ),
-            );
             clearTimeout(state.timerId);
         }, timeout);
 
