@@ -34,8 +34,8 @@ This application provides real-time insights into those events, enabling users t
 
 This extension is built with simplicity and transparency in mind. The source code is written in vanilla JavaScript and utilizes Chrome APIs directly, without the use of bundlers or frameworks. This approach ensures that the code you see in the repository is identical to what is deployed to the Chrome Web Store, facilitating easier review, modification, and understanding of the extension's functionality.
 
-- `background.js`: Serves as the extension's service worker, responsible for updating the browser icon based on whether the page exposes analytics layers. The extension checks for both `window.dataLayer` (GA4) and `window._mtm` (Matomo) on the currently viewed site.
-- `popup.html` / `popup.js`: Provides the user interface for debugging and interacting with detected analytics events (GA4 and Matomo).
+- `background.js`: Serves as the extension's service worker, responsible for updating the browser icon based on whether the page exposes analytics layers. The extension checks for both `window.dataLayer` and `window._mtm` (Matomo) on the currently viewed site.
+- `popup.html` / `popup.js`: Provides the user interface for debugging and interacting with detected analytics events.
 - `contentScript.js`: Facilitates communication between `background.js` and `popup.html`, detecting when analytics layers are present and relaying events pushed to them.
 - `init.js`: Loaded/injected into the page by `contentScript.js`, this script captures events that live on the page’s `window` and forwards them. It listens for pushes made to `window.dataLayer` (e.g. `dataLayer.push(...)`) and to `window._mtm` (e.g. `_mtm.push(...)`) because content scripts cannot directly access page JavaScript objects.
 
@@ -45,7 +45,7 @@ Install the extension from the [./src](./src) directory as an unpacked extension
 
 ### popup.html / popup.js
 
-The extension provides a streamlined development process for the popup interface by utilizing a development server. When the `ENVIRONMENT` constant is set to `development` (which is done by the server), this setup allows developers to work without relying on Chrome APIs and instead uses simulated event data in place of actual page events. The simulated data includes examples for both `window.dataLayer` (GA4) and `window._mtm` (Matomo), so you can test the UI and both event types without loading an actual site.
+The extension provides a streamlined development process for the popup interface by utilizing a development server. When the `ENVIRONMENT` constant is set to `development` (which is done by the server), this setup allows developers to work without relying on Chrome APIs and instead uses simulated event data in place of actual page events. The simulated data includes examples for both `window.dataLayer` and `window._mtm` (Matomo), so you can test the UI and both event types without loading an actual site.
 
 #### Setup
 
