@@ -23,8 +23,9 @@
                 apply(target, thisArg, args) {
                     const event = args[0];
                     const trace = getTrace();
+                    const res = Reflect.apply(target, thisArg, args);
                     sendEvent(name, event, trace);
-                    return Reflect.apply(target, thisArg, args);
+                    return res;
                 },
             });
         });
