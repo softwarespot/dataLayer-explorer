@@ -37,7 +37,7 @@ This extension is built with simplicity and transparency in mind. The source cod
 - `background.js`: Serves as the extension's service worker, responsible for updating the browser icon based on whether the page exposes analytics layers. The extension checks for both `window.dataLayer` (GA4) and `window._mtm` (Matomo) on the currently viewed site.
 - `popup.html` / `popup.js`: Provides the user interface for debugging and interacting with detected analytics events (GA4 and Matomo).
 - `contentScript.js`: Facilitates communication between `background.js` and `popup.html`, detecting when analytics layers are present and relaying events pushed to them.
-- `init.js`: Loaded/injected into the page by `contentScript.js`, this script captures events that live on the page’s `window` and forwards them. It listens for pushes made to `window.dataLayer` (e.g., `dataLayer.push(...)`) and to `window._mtm` (e.g., `_mtm.push(...)`) because content scripts cannot directly access page JavaScript objects.
+- `init.js`: Loaded/injected into the page by `contentScript.js`, this script captures events that live on the page’s `window` and forwards them. It listens for pushes made to `window.dataLayer` (e.g. `dataLayer.push(...)`) and to `window._mtm` (e.g. `_mtm.push(...)`) because content scripts cannot directly access page JavaScript objects.
 
 ### Setup
 
