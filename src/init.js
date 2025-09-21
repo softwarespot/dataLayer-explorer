@@ -76,7 +76,7 @@
                 return;
             }
 
-            state.timerId = setTimeout(dataLayersLoadedChecker, 512);
+            state.timerId = setTimeout(dataLayersLoadedChecker, 256);
         }
 
         dataLayersLoadedChecker();
