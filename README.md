@@ -4,7 +4,8 @@
 </div>
 <br />
 
-**dataLayer Explorer** is a powerful Chrome extension designed to simplify the analysis of a site's analytics layers for developers and digital marketers. It supports both [Google Analytics 4 (GA4)](https://support.google.com/analytics/answer/10089681) and [Matomo](https://matomo.org) by detecting events pushed to the page — specifically `window.dataLayer` (GA4) and `window._mtm` (Matomo). This tool provides real-time insights into those events, enabling users to effortlessly monitor and inspect event data for informed decision-making.
+**dataLayer Explorer** is a powerful Chrome extension designed to simplify the analysis of a site's analytics layers for developers and digital marketers. It supports both [Google Analytics 4 (GA4)](https://support.google.com/analytics/answer/10089681) and [Matomo](https://matomo.org) by detecting events pushed to the page — specifically `window.dataLayer` (GA4) and `window._mtm` (Matomo).
+This application provides real-time insights into those events, enabling users to effortlessly monitor and inspect event data for informed decision-making.
 
 <div align="center">
     <img src="./images/app1.png" alt="Extension screenshot">
