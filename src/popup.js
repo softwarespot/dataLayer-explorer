@@ -479,13 +479,30 @@ function isMatching(str, query) {
 
 function jsonSyntaxHighlight(data) {
     // Taken from URL: https://codepen.io/absolutedevelopment/pen/EpwVzN
+    // Group 1: String literals with proper escape handling
+    //   - "(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*" - strings with unicode/escape sequences
+    //   - (\s*:)? - optional colon for object keys
+    // Group 2: Primitive literals
+    //   - \b(true|false|null)\b - boolean and null literals (word boundaries prevent partial matches)
+    // Group 3: Numeric literals
+    //   - -?\d+(?:\.\d*)?(?:[eE][+-]?\d+)? - integers, floats, scientific notation
     const reParseJSON =
         // eslint-disable-next-line security/detect-unsafe-regex, sonarjs/regex-complexity
         /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g;
+
     return data
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
+        .replace(/[&<>]/g, (char) => {
+            switch (char) {
+                case '&':
+                    return '&amp;';
+                case '<':
+                    return '&lt;';
+                case '>':
+                    return '&gt;';
+                default:
+                    return char;
+            }
+        })
         .replace(reParseJSON, (str) => {
             const className = getJSONSyntaxHighlightClassName(str);
             return `<span class="${className}">${truncate(str, 256)}</span>`;
