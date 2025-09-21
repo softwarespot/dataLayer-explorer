@@ -4,7 +4,7 @@
 </div>
 <br />
 
-**dataLayer Explorer** is a powerful Chrome extension designed to simplify the analysis of a site's analytics layers for developers and digital marketers. It supports both [Google Analytics 4 (GA4)](https://support.google.com/analytics/answer/10089681) and [Matomo](https://matomo.org) by detecting events pushed to the page — specifically `window.dataLayer` (GA4) and `window._mtm` (Matomo).
+**dataLayer Explorer** is a powerful Chrome extension designed to simplify the analysis of a site's analytics layers for developers and digital marketers. It supports both [Google Analytics 4 (GA4)](https://support.google.com/analytics/answer/10089681) and [Matomo](https://matomo.org) by detecting events pushed to the page — specifically `window.dataLayer` (used by GA4 and other tools) and `window._mtm` (Matomo).
 This application provides real-time insights into those events, enabling users to effortlessly monitor and inspect event data for informed decision-making.
 
 <div align="center">
@@ -14,7 +14,7 @@ This application provides real-time insights into those events, enabling users t
 ## Features
 
 - **Access detailed data effortlessly** View a comprehensive list of events (both GA4 and Matomo), each expandable to reveal rich, detailed information. The intuitive interface allows for quick navigation through events, ensuring important insights are easily accessible.
-- **Identify GA4 events quickly** A visual indicator <img src="./src/icons/ga4.svg" width="16" height="16" /> marks events detected from `window.dataLayer` ([Google Analytics 4](https://support.google.com/analytics/answer/10089681)), making it simpler to focus on relevant data.
+- **Identify dataLayer events quickly** A visual indicator <img src="./src/icons/ga4.svg" width="16" height="16" /> marks events detected from `window.dataLayer` (used by GA4 and other tools), making it simpler to focus on relevant data.
 - **Identify Matomo events quickly** A visual indicator <img src="./src/icons/matomo.svg" width="16" height="16" /> marks events detected from `window._mtm` ([Matomo](https://matomo.org)).
 - **Facilitate sharing** The "Copy" function enables easy copying of event details to the clipboard for quick access or sharing with team members, streamlining collaboration.
 - **Analyze event timing precisely** Gain insights into the time elapsed between page load and each event push by simply hovering over the event name. This feature enables detailed analysis of event timing, contributing to a deeper understanding of site performance and user experience. Such precise timing information can be invaluable for optimizing page load sequences and improving overall site responsiveness.
@@ -23,7 +23,7 @@ This application provides real-time insights into those events, enabling users t
 
 ## Supported systems
 
-- Events pushed to `window.dataLayer` (e.g. [Google Analytics 4](<(https://support.google.com/analytics/answer/10089681)>) and other tools that push to dataLayer).
+- Events pushed to `window.dataLayer` (e.g. [Google Analytics 4](https://support.google.com/analytics/answer/10089681) and other tools that push to dataLayer).
 - Matomo — events pushed to `window._mtm` ([Matomo](https://matomo.org)).
 
 ## Installation

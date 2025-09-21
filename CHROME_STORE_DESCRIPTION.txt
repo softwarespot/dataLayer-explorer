@@ -1,4 +1,4 @@
-This application provides real-time insights into analytics pushes, enabling users to effortlessly monitor and inspect event data for informed decision-making.
+dataLayer Explorer provides real-time insights into analytics pushes, enabling users to effortlessly monitor and inspect event data for informed decision-making.
 
 Website: https://github.com/softwarespot/dataLayer-explorer
 
