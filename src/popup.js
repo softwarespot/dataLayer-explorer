@@ -335,7 +335,7 @@ async function queryDataLayerEntries() {
 
 async function syncDataLayerEntries() {
     const entries = await queryDataLayerEntries();
-    const hasSynableEntries = state.currEventsIndex < entries.length;
+    const hasSyncableEntries = state.currEventsIndex < entries.length;
     for (; state.currEventsIndex < entries.length; state.currEventsIndex += 1) {
         const entry = entries[state.currEventsIndex];
         const entryIdx = state.currEventsIndex + 1;
@@ -373,7 +373,7 @@ async function syncDataLayerEntries() {
     `;
         state.dom.eventsContainer.insertAdjacentHTML('afterbegin', eventHTML);
     }
-    if (!hasSynableEntries) {
+    if (!hasSyncableEntries) {
         return false;
     }
 
