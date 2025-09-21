@@ -350,7 +350,7 @@ async function syncDataLayerEntries() {
         ];
         const eventHTML = `
         <div class="${evtClassNames.join(' ')}" data-event="${encodedBtoa(event)}">
-            <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load and is available from window.${entry.name}.">
+            <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load and was pushed to window.${entry.name}.">
                 <span class="event-index">${entryIdx}</span>
                 ${getEventName(entry.event)}
             </div>
@@ -365,7 +365,7 @@ async function syncDataLayerEntries() {
             <div class="event-advanced-info">
                 <hr />
                 <h2>Advanced information</h2>
-                <p>The event was sent ${afterPageLoad} after the initial page load and is available from <code>window.${entry.name}</code>.</p>
+                <p>The event was sent ${afterPageLoad} after the initial page load and and was pushed to <code>window.${entry.name}</code>.</p>
                 <h3>Stack trace</h3>
                 <pre style="font-size: 1em">${entry.trace}</pre>
             </div>
