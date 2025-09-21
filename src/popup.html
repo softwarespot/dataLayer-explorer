@@ -2,7 +2,6 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>dataLayer Explorer</title>
 
         <style>
@@ -77,7 +76,7 @@
             }
 
             /* Header styles */
-            header {
+            #header {
                 align-items: center;
                 background-color: var(--light-color);
                 color: var(--dark-text-color);
@@ -133,7 +132,7 @@
             }
 
             #status.error {
-                color: red;
+                color: #d63031;
                 font-weight: bold;
             }
 
@@ -202,8 +201,7 @@
 
             /* JSON syntax highlighting */
             .json-key {
-                color: #0984e3;
-                gap: 5px;
+                color: var(--primary-color);
             }
 
             .json-boolean {
