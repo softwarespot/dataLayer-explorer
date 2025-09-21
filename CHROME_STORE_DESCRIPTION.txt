@@ -1,0 +1,28 @@
+This application provides real-time insights into analytics pushes, enabling users to effortlessly monitor and inspect event data for informed decision-making.
+
+Website: https://github.com/softwarespot/dataLayer-explorer
+
+Access detailed data effortlessly
+View a comprehensive list of events (events pushed to window.dataLayer and Matomo), each expandable to reveal full event payloads and metadata. The intuitive interface allows for quick navigation through events so important insights are easily accessible.
+
+Identify events quickly
+Visual badges mark the source of each event — events pushed to `window.dataLayer` (e.g. Google Analytics or other systems that use dataLayer) or Matomo (from `window._mtm`) — making it simpler to focus on relevant data.
+
+Facilitate sharing
+The "Copy" function enables easy copying of event details to the clipboard for quick access or sharing with team members, streamlining collaboration and reporting.
+
+Analyze event timing precisely
+Hover an event to see the time elapsed since page load. This helps diagnose when events fire during the page lifecycle and supports troubleshooting and optimization.
+
+Stay updated with ease
+A refresh button lets you manually update the events list to pick up newly pushed events without reloading the page.
+
+Supported systems
+- Events pushed to window.dataLayer (e.g. Google Analytics 4 and other tools that push to dataLayer).
+- Matomo — events pushed to window._mtm (Matomo).
+
+Open Source advantage
+This extension is open source, allowing users to benefit from community-driven development and transparency. By being open source, it ensures that anyone can contribute to its improvement, fostering innovation and responsiveness to user needs.
+
+IMPORTANT:
+The website (https://github.com/softwarespot/dataLayer-explorer) hosts the source code for the dataLayer Explorer extension. This information is not included in the extension's details on the Chrome Web Store because the website is not owned by the extension's author. However, it is safe to visit, as it is hosted on GitHub.

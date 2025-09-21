@@ -23,9 +23,8 @@ This application provides real-time insights into those events, enabling users t
 
 ## Supported systems
 
-- Events pushed to `window.dataLayer`.
-- Google Analytics 4 — Events pushed to `window.dataLayer` ([GA4](https://support.google.com/analytics/answer/10089681)).
-- Matomo — Events pushed to `window._mtm` ([Matomo](https://matomo.org)).
+- Events pushed to `window.dataLayer` (e.g. [Google Analytics 4]((https://support.google.com/analytics/answer/10089681)) and other tools that push to dataLayer).
+- Matomo — events pushed to `window._mtm` ([Matomo](https://matomo.org)).
 
 ## Installation
 
