@@ -43,16 +43,16 @@
         const state = {
             dataLayerInfos: [
                 {
-                    name: 'dataLayer',
                     found: false,
+                    name: 'dataLayer',
                 },
                 {
-                    name: '_mtm',
                     found: false,
+                    name: '_mtm',
                 },
             ],
-            foundTotal: 0,
             timerId: 0,
+            total: 0,
         };
 
         function dataLayersLoadedChecker() {
@@ -63,7 +63,7 @@
 
                 const dataLayer = window[dataLayerInfo.name];
                 if (Array.isArray(dataLayer)) {
-                    state.foundTotal++;
+                    state.total++;
 
                     dataLayerInfo.found = true;
                     fn(dataLayerInfo.name, dataLayer);
@@ -71,18 +71,18 @@
                     // Resolve when at least one dataLayer has been found
                     withResolvers.resolve();
                 }
-
-                if (state.foundTotal === state.dataLayerInfos.length) {
-                    return;
-                }
-                state.timerId = setTimeout(dataLayersLoadedChecker, 256);
             }
+            if (state.total === state.dataLayerInfos.length) {
+                return;
+            }
+
+            state.timerId = setTimeout(dataLayersLoadedChecker, 512);
         }
 
         dataLayersLoadedChecker();
 
         setTimeout(() => {
-            if (state.foundTotal === 0) {
+            if (state.total === 0) {
                 withResolvers.reject(
                     new Error(
                         `Waiting for dataLayer in "init.js" timed out after ${timeout}ms, possibly due to dataLayer not being available on the site`,
@@ -111,8 +111,8 @@
             const afterPageLoadMs = Date.now() - window.performance.timeOrigin;
             entries.push({
                 afterPageLoadMs: Math.abs(afterPageLoadMs),
-                name,
                 event,
+                name,
                 trace,
             });
             deferSendEntries();
