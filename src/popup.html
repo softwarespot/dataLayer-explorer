@@ -6,7 +6,7 @@
         <title>dataLayer Explorer</title>
 
         <style>
-            /* Mix of https://flatuicolors.com/palette/defo and https://flatuicolors.com/palette/us */
+            /* Color palette from https://flatuicolors.com/palette/defo and https://flatuicolors.com/palette/us */
             :root {
                 --primary-color: #0984e3;
                 --secondary-color: #2d3436;
@@ -16,8 +16,8 @@
                 --dark-text-color: #2d3436;
             }
 
+            /* Base styles */
             body {
-                outline: 1px solid var(--dark-text-color);
                 color: var(--dark-text-color);
                 font-family:
                     system-ui,
@@ -34,7 +34,8 @@
                     'Segoe UI Symbol',
                     'Noto Color Emoji';
                 margin: 0;
-                padding: 5px 5px;
+                outline: 1px solid var(--dark-text-color);
+                padding: 5px;
                 width: 585px;
             }
 
@@ -45,6 +46,12 @@
                 word-wrap: break-word;
             }
 
+            /* Utility classes */
+            .hide {
+                display: none !important;
+            }
+
+            /* Button styles */
             .btn {
                 background: none;
                 border: none;
@@ -54,6 +61,7 @@
                 transition: all 0.3s ease;
             }
 
+            /* Icon styles */
             .ga4-icon,
             .matomo-icon {
                 width: 16px;
@@ -68,11 +76,8 @@
                 margin-top: 2.5px;
             }
 
-            .hide {
-                display: none !important;
-            }
-
-            #header {
+            /* Header styles */
+            header {
                 align-items: center;
                 background-color: var(--light-color);
                 color: var(--dark-text-color);
@@ -80,8 +85,12 @@
                 font-size: 1.2em;
                 justify-content: space-between;
                 margin-bottom: 2.5px;
-                text-align: left;
                 width: 100%;
+            }
+
+            #header-title {
+                font-size: 1.5em;
+                font-weight: bold;
             }
 
             #header-search {
@@ -92,6 +101,15 @@
                 gap: 5px;
             }
 
+            #header-btns {
+                align-items: center;
+                display: flex;
+                font-size: 1.3em;
+                gap: 5px;
+                padding: 5px;
+            }
+
+            /* Form styles */
             #search {
                 border: 1.5px solid var(--primary-light-color);
                 font-size: 1em;
@@ -107,20 +125,7 @@
                 outline: none;
             }
 
-            #header-title {
-                font-size: 1.5em;
-                font-weight: bold;
-            }
-
-            #header-btns {
-                align-items: center;
-                display: flex;
-                flex-direction: row;
-                font-size: 1.3em;
-                gap: 5px;
-                padding: 5px;
-            }
-
+            /* Status styles */
             #events-status,
             #status {
                 font-size: 1.3em;
@@ -132,6 +137,7 @@
                 font-weight: bold;
             }
 
+            /* Event styles */
             .event {
                 align-items: center;
                 background-color: var(--primary-color);
@@ -152,7 +158,6 @@
                 align-items: center;
                 cursor: pointer;
                 display: flex;
-                flex-direction: row;
                 flex-grow: 1;
                 padding: 5px;
             }
@@ -161,14 +166,13 @@
                 background-color: var(--light-color);
                 color: var(--dark-text-color);
                 font-weight: bold;
-                padding: 2.5px;
                 margin-right: 10px;
+                padding: 2.5px;
             }
 
             .event-btns {
                 align-items: center;
                 display: flex;
-                flex-direction: row;
                 padding: 5px;
             }
 
@@ -184,7 +188,6 @@
                 display: block;
             }
 
-            /* This should be after ".event.show + .event-content" */
             .event.hide + .event-content {
                 display: none;
             }
@@ -197,6 +200,7 @@
                 display: block;
             }
 
+            /* JSON syntax highlighting */
             .json-key {
                 color: #0984e3;
                 gap: 5px;
@@ -218,6 +222,7 @@
                 color: #00b894;
             }
 
+            /* Animations */
             @keyframes click-animation {
                 0%,
                 100% {
@@ -236,26 +241,29 @@
     </head>
 
     <body>
-        <div id="header">
+        <header id="header">
             <div id="header-search">
-                <span id="header-title">
-                    <img id="icon" src="./icons/icon32.png" />
-                    dataLayer Explorer</span
-                >
-                <input id="search" class="hide" placeholder="Search events..." />
+                <div id="header-title">
+                    <img id="icon" src="./icons/icon32.png" alt="dataLayer Explorer icon" />
+                    dataLayer Explorer
+                </div>
+                <input id="search" class="hide" type="search" placeholder="Search events..." />
             </div>
             <div id="header-btns" class="hide">
-                <button id="copy-all-btn" class="btn" title="Copy the dataLayer events to the clipboard.">
+                <button id="copy-all-btn" class="btn" title="Copy the dataLayer events to the clipboard">
                     &#128203;
                 </button>
-                <button id="expand-all-btn" class="btn" title="Expand all events.">&#65291;</button>
-                <button id="collapse-all-btn" class="btn" title="Collapse all events.">&#65293;</button>
-                <button id="refresh-btn" class="btn" title="Refresh the dataLayer events list.">&#10227;</button>
+                <button id="expand-all-btn" class="btn" title="Expand all events">&#65291;</button>
+                <button id="collapse-all-btn" class="btn" title="Collapse all events">&#65293;</button>
+                <button id="refresh-btn" class="btn" title="Refresh the dataLayer events list">&#10227;</button>
             </div>
-        </div>
-        <div id="events-status" class="hide">No events were found.</div>
-        <div id="status">Checking if dataLayer is available on this page...</div>
-        <div id="events-container" class="hide"></div>
+        </header>
+
+        <main>
+            <div id="events-status" class="hide">No events were found.</div>
+            <div id="status">Checking if dataLayer is available on this page...</div>
+            <div id="events-container" class="hide"></div>
+        </main>
     </body>
 
     <script src="popup.js" type="module"></script>
