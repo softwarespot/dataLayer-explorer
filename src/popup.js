@@ -60,13 +60,13 @@ addEventListener(document, 'DOMContentLoaded', async () => {
 
     // Create DOM event handlers
     const deferSetSearchTerm = registerSetSearchTerm();
-    addEventListener(state.dom.search, 'input', async (event) => {
+    addEventListener(state.dom.search, 'input', (event) => {
         const searchTerm = event.target.value;
         syncFilterDataLayerEntries(searchTerm);
         deferSetSearchTerm(searchTerm);
     });
 
-    addEventListener(state.dom.copyAllBtn, 'click', async (event) => {
+    addEventListener(state.dom.copyAllBtn, 'click', (event) => {
         const events = [];
         const els = state.dom.eventsContainer.querySelectorAll('.event');
         for (const el of els) {
@@ -587,7 +587,9 @@ function copyToClipboard(text) {
     } catch {
         // Ignore error
     } finally {
-        document.body.removeChild(el);
+        if (document.body) {
+            document.body.removeChild(el);
+        }
     }
     return false;
 }
