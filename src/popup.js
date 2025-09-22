@@ -98,19 +98,6 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         eventEl.classList.toggle('show');
     });
 
-    addEventListener(document, 'click', 'a', (event, targetEl) => {
-        if (ENVIRONMENT === 'development') {
-            return;
-        }
-
-        // Links cannot be opened directly from a popup according to documentation
-        event.stopPropagation();
-        chrome.tabs.create({
-            active: true,
-            url: targetEl.href,
-        });
-    });
-
     addEventListener(document, 'click', '.event-copy-btn', (event, targetEl) => {
         const eventEl = targetEl.closest('.event');
         const eventDecoded = encodedAtob(eventEl.getAttribute('data-event'));
