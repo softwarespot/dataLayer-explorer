@@ -323,10 +323,8 @@ async function syncDataLayerEntries() {
     for (; state.currEventsIndex < entries.length; state.currEventsIndex += 1) {
         const entry = entries[state.currEventsIndex];
         const entryIdx = state.currEventsIndex + 1;
-        const event = JSON.stringify(entry.event, null, 2);
-        const afterPageLoad = toDurationString(entry.afterPageLoadMs);
 
-        const eventEl = createEventElement(entry, entryIdx, event, afterPageLoad);
+        const eventEl = createEventElement(entry, entryIdx);
         state.dom.eventsContainer.insertBefore(eventEl, state.dom.eventsContainer.firstChild);
     }
     if (!hasSyncableEntries) {
@@ -337,7 +335,10 @@ async function syncDataLayerEntries() {
     return true;
 }
 
-function createEventElement(entry, entryIdx, event, afterPageLoad) {
+function createEventElement(entry, entryIdx) {
+    const event = JSON.stringify(entry.event, undefined, 2);
+    const afterPageLoad = toDurationString(entry.afterPageLoadMs);
+
     const eventTemplate = document.getElementById('event-template');
     const eventClone = eventTemplate.content.cloneNode(true);
 
