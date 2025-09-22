@@ -273,6 +273,62 @@
             <div id="status">Checking if dataLayer is available on this page...</div>
             <div id="events-container" class="hide"></div>
         </main>
+
+        <!-- Templates -->
+        <template id="event-template">
+            <div class="event" data-event="">
+                <div class="event-name" title="">
+                    <span class="event-index"></span>
+                    <span class="event-name-text"></span>
+                </div>
+                <div class="event-btns">
+                    <div class="event-icon-container"></div>
+                    <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">
+                        &#128203;
+                    </button>
+                    <button
+                        class="eye-icon event-advanced-info-btn btn"
+                        title="Display advanced information about the event."
+                    >
+                        &#128065;
+                    </button>
+                </div>
+            </div>
+            <div class="event-content">
+                <pre class="event-json"></pre>
+                <div class="event-advanced-info">
+                    <hr />
+                    <h2>Advanced information</h2>
+                    <p class="event-details"></p>
+                    <h3>Stack trace</h3>
+                    <pre class="event-trace" style="font-size: 1em"></pre>
+                </div>
+            </div>
+        </template>
+
+        <template id="ga4-icon-template">
+            <a
+                href=""
+                class="btn"
+                title="This is a Google Analytics 4 (GA4) event."
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <img src="./icons/ga4.svg" class="ga4-icon" />
+            </a>
+        </template>
+
+        <template id="matomo-icon-template">
+            <a
+                href="https://developer.matomo.org/"
+                class="btn"
+                title="This is a Matomo event."
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <img src="./icons/matomo.svg" class="matomo-icon" />
+            </a>
+        </template>
     </body>
 
     <script src="popup.js" type="module"></script>

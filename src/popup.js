@@ -342,36 +342,8 @@ async function syncDataLayerEntries() {
         const event = JSON.stringify(entry.event, null, 2);
         const afterPageLoad = toDurationString(entry.afterPageLoadMs);
 
-        const isGTMHistoryChangeV2 = entry.event?.event === 'gtm.historyChange-v2';
-        const evtClassNames = [
-            'event',
-            isGTMHistoryChangeV2 ? 'page-change' : '',
-            state.config.expandAll ? 'show' : '',
-        ];
-        const eventHTML = `
-        <div class="${evtClassNames.join(' ')}" data-event="${encodedBtoa(event)}">
-            <div class="event-name" title="Event was sent ${afterPageLoad} after the initial page load and was pushed to window.${entry.name}.">
-                <span class="event-index">${entryIdx}</span>
-                ${getEventName(entry.event)}
-            </div>
-            <div class="event-btns">
-                ${getEventIcon(entry)}
-                <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">&#128203;</button>
-                <button class="eye-icon event-advanced-info-btn btn" title="Display advanced information about the event.">&#128065;</button>
-            </div>
-        </div>
-        <div class="event-content">
-            <pre>${jsonSyntaxHighlight(event)}</pre>
-            <div class="event-advanced-info">
-                <hr />
-                <h2>Advanced information</h2>
-                <p>The event was sent ${afterPageLoad} after the initial page load and and was pushed to <code>window.${entry.name}</code>.</p>
-                <h3>Stack trace</h3>
-                <pre style="font-size: 1em">${entry.trace}</pre>
-            </div>
-        </div>
-    `;
-        state.dom.eventsContainer.insertAdjacentHTML('afterbegin', eventHTML);
+        const eventEl = createEventElement(entry, entryIdx, event, afterPageLoad);
+        state.dom.eventsContainer.insertBefore(eventEl, state.dom.eventsContainer.firstChild);
     }
     if (!hasSyncableEntries) {
         return false;
@@ -379,6 +351,48 @@ async function syncDataLayerEntries() {
 
     syncFilterDataLayerEntries(state.dom.search.value);
     return true;
+}
+
+function createEventElement(entry, entryIdx, event, afterPageLoad) {
+    const templateEl = document.getElementById('event-template');
+    const clonedEl = templateEl.content.cloneNode(true);
+
+    // Configure the main event element
+    const eventEl = clonedEl.querySelector('.event');
+    const isGTMHistoryChangeV2 = entry.event?.event === 'gtm.historyChange-v2';
+    const eventClasses = [
+        'event',
+        isGTMHistoryChangeV2 ? 'page-change' : '',
+        state.config.expandAll ? 'show' : '',
+    ].join(' ');
+
+    eventEl.className = eventClasses;
+    eventEl.setAttribute('data-event', encodedBtoa(event));
+
+    // Configure event name section
+    const eventNameEl = clonedEl.querySelector('.event-name');
+    eventNameEl.setAttribute(
+        'title',
+        `Event was sent ${afterPageLoad} after the initial page load and was pushed to window.${entry.name}.`,
+    );
+
+    clonedEl.querySelector('.event-index').textContent = entryIdx;
+    clonedEl.querySelector('.event-name-text').textContent = getEventName(entry.event);
+
+    // Configure icon
+    const iconContainer = clonedEl.querySelector('.event-icon-container');
+    const iconEl = getEventIconElement(entry);
+    if (iconEl) {
+        iconContainer.appendChild(iconEl);
+    }
+
+    // Configure event content
+    clonedEl.querySelector('.event-json').innerHTML = jsonSyntaxHighlight(event);
+    clonedEl.querySelector('.event-details').innerHTML =
+        `The event was sent ${afterPageLoad} after the initial page load and was pushed to <code>window.${entry.name}</code>.`;
+    clonedEl.querySelector('.event-trace').textContent = entry.trace;
+
+    return clonedEl;
 }
 
 function getEventName(obj) {
@@ -397,31 +411,31 @@ function getEventName(obj) {
     return 'unknown data';
 }
 
-function getEventIcon(entry) {
+function getEventIconElement(entry) {
     switch (entry.name) {
         case 'dataLayer': {
-            if (!isObject(entry.event) || !isString(entry.event)) {
-                return '';
+            if (!isObject(entry.event) || !isString(entry.event.event)) {
+                return undefined;
             }
 
             const eventInfo = GA.getEventInfo(entry.event);
             if (!isObject(eventInfo)) {
-                return '';
+                return undefined;
             }
-            return `
-                <a href="${eventInfo.url}" class="btn" title="This is a Google Analytics 4 (GA4) event." target="_blank" rel="noopener noreferrer">
-                    <img src="./icons/ga4.svg" class="ga4-icon" />
-                </a>
-            `;
+
+            const templateEl = document.querySelector('#ga4-icon-template');
+            const clonedEl = templateEl.content.cloneNode(true);
+            const linkEl = clonedEl.querySelector('a');
+            linkEl.href = eventInfo.url;
+
+            return clonedEl;
         }
-        case '_mtm':
-            return `
-                <a href="https://developer.matomo.org/" class="btn" title="This is a Matomo event." target="_blank" rel="noopener noreferrer">
-                    <img src="./icons/matomo.svg" class="matomo-icon" />
-                </a>
-            `;
+        case '_mtm': {
+            const templateEl = document.querySelector('#matomo-icon-template');
+            return templateEl.content.cloneNode(true);
+        }
         default:
-            return '';
+            return undefined;
     }
 }
 
