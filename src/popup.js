@@ -354,11 +354,11 @@ async function syncDataLayerEntries() {
 }
 
 function createEventElement(entry, entryIdx, event, afterPageLoad) {
-    const templateEl = document.getElementById('event-template');
-    const clonedEl = templateEl.content.cloneNode(true);
+    const eventTemplate = document.getElementById('event-template');
+    const eventClone = eventTemplate.content.cloneNode(true);
 
     // Configure the main event element
-    const eventEl = clonedEl.querySelector('.event');
+    const eventEl = eventClone.querySelector('.event');
     const isGTMHistoryChangeV2 = entry.event?.event === 'gtm.historyChange-v2';
     const eventClasses = [
         'event',
@@ -370,29 +370,29 @@ function createEventElement(entry, entryIdx, event, afterPageLoad) {
     eventEl.setAttribute('data-event', encodedBtoa(event));
 
     // Configure event name section
-    const eventNameEl = clonedEl.querySelector('.event-name');
+    const eventNameEl = eventClone.querySelector('.event-name');
     eventNameEl.setAttribute(
         'title',
         `Event was sent ${afterPageLoad} after the initial page load and was pushed to window.${entry.name}.`,
     );
 
-    clonedEl.querySelector('.event-index').textContent = entryIdx;
-    clonedEl.querySelector('.event-name-text').textContent = getEventName(entry.event);
+    eventClone.querySelector('.event-index').textContent = entryIdx;
+    eventClone.querySelector('.event-name-text').textContent = getEventName(entry.event);
 
     // Configure icon
-    const iconContainer = clonedEl.querySelector('.event-icon-container');
+    const iconContainer = eventClone.querySelector('.event-icon-container');
     const iconEl = getEventIconElement(entry);
     if (iconEl) {
         iconContainer.appendChild(iconEl);
     }
 
     // Configure event content
-    clonedEl.querySelector('.event-json').innerHTML = jsonSyntaxHighlight(event);
-    clonedEl.querySelector('.event-details').innerHTML =
+    eventClone.querySelector('.event-json').innerHTML = jsonSyntaxHighlight(event);
+    eventClone.querySelector('.event-details').innerHTML =
         `The event was sent ${afterPageLoad} after the initial page load and was pushed to <code>window.${entry.name}</code>.`;
-    clonedEl.querySelector('.event-trace').textContent = entry.trace;
+    eventClone.querySelector('.event-trace').textContent = entry.trace;
 
-    return clonedEl;
+    return eventClone;
 }
 
 function getEventName(obj) {
@@ -423,16 +423,16 @@ function getEventIconElement(entry) {
                 return undefined;
             }
 
-            const templateEl = document.querySelector('#ga4-icon-template');
-            const clonedEl = templateEl.content.cloneNode(true);
-            const linkEl = clonedEl.querySelector('a');
+            const ga4Template = document.querySelector('#ga4-icon-template');
+            const ga4Clone = ga4Template.content.cloneNode(true);
+            const linkEl = ga4Clone.querySelector('a');
             linkEl.href = eventInfo.url;
 
-            return clonedEl;
+            return ga4Clone;
         }
         case '_mtm': {
-            const templateEl = document.querySelector('#matomo-icon-template');
-            return templateEl.content.cloneNode(true);
+            const matomoTemplate = document.querySelector('#matomo-icon-template');
+            return matomoTemplate.content.cloneNode(true);
         }
         default:
             return undefined;
@@ -644,7 +644,7 @@ function toDurationString(ms) {
 
 function truncate(str, maxLen, prefix = '...') {
     str = String(str);
-    return str.length > maxLen ? `${str.substr(0, maxLen)}${prefix}` : str;
+    return str.length > maxLen ? `${str.slice(0, maxLen)}${prefix}` : str;
 }
 
 function encodedBtoa(str) {
