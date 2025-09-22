@@ -31,6 +31,7 @@ const state = {
         expandAll: false,
     },
     currEventsIndex: 0,
+    emptySyncCounts: 0,
 };
 /* eslint-enable sort-keys-fix/sort-keys-fix */
 
@@ -49,7 +50,7 @@ addEventListener(document, 'DOMContentLoaded', async () => {
             state.dom.status.classList.add('hide');
 
             await syncDataLayerEntries();
-            registerSyncDataLayerEntries();
+            syncDataLayerEntriesChecker();
             break;
         }
         case EVENT_DATALAYER_NOT_FOUND:
@@ -161,22 +162,18 @@ async function syncAppVersion() {
     }
 }
 
-function registerSyncDataLayerEntries() {
-    let emptySyncCounts = 0;
-    async function syncDataLayerEntriesChecker() {
-        const syncedEntries = await syncDataLayerEntries();
-        if (syncedEntries) {
-            emptySyncCounts = 0;
-        } else {
-            emptySyncCounts += 1;
-        }
-
-        // Continue for a maximum of 30 times
-        if (emptySyncCounts < 30) {
-            setTimeout(syncDataLayerEntriesChecker, 1024);
-        }
+async function syncDataLayerEntriesChecker() {
+    const hasSyncedEntries = await syncDataLayerEntries();
+    if (hasSyncedEntries) {
+        state.emptySyncCounts = 0;
+    } else {
+        state.emptySyncCounts += 1;
     }
-    syncDataLayerEntriesChecker();
+
+    // Continue for a maximum of 30 times i.e. ~30 seconds
+    if (state.emptySyncCounts < 30) {
+        setTimeout(syncDataLayerEntriesChecker, 1024);
+    }
 }
 
 async function syncSearchTermInput(searchTerm) {
