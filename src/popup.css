@@ -1,0 +1,242 @@
+/* Color palette from https://flatuicolors.com/palette/defo and https://flatuicolors.com/palette/us */
+:root {
+    --primary-color: #0984e3;
+    --secondary-color: #2d3436;
+    --primary-light-color: #3498db;
+    --light-color: #fff;
+    --light-text-color: #ecf0f1;
+    --dark-text-color: #2d3436;
+    --error-text-color: #d63031;
+}
+
+/* Base styles */
+body {
+    color: var(--dark-text-color);
+    font-family:
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        'Helvetica Neue',
+        'Noto Sans',
+        'Liberation Sans',
+        Arial,
+        sans-serif,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        'Noto Color Emoji';
+    margin: 0;
+    outline: 1px solid var(--dark-text-color);
+    padding: 5px;
+    width: 585px;
+}
+
+pre {
+    font-size: 1.4em;
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Utility classes */
+.hide {
+    display: none !important;
+}
+
+/* Button styles */
+.btn {
+    background: none;
+    border: none;
+    color: var(--dark-text-color);
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+/* Icon styles */
+.ga4-icon,
+.matomo-icon,
+.eye-icon,
+.event-copy-btn {
+    width: 16px;
+    height: 19px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ga4-icon,
+.matomo-icon {
+    object-fit: contain;
+}
+
+.eye-icon,
+.event-copy-btn {
+    color: var(--light-text-color);
+}
+
+.event-copy-btn {
+    transform: translateY(-3.5px);
+}
+
+/* Header styles */
+#header {
+    align-items: center;
+    background-color: var(--light-color);
+    display: flex;
+    font-size: 1.2em;
+    justify-content: space-between;
+    margin-bottom: 2.5px;
+    width: 100%;
+}
+
+#header-title {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+#header-search {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0.5;
+    gap: 5px;
+}
+
+#header-btns {
+    align-items: center;
+    display: flex;
+    font-size: 1.3em;
+    gap: 5px;
+    padding: 5px;
+}
+
+/* Form styles */
+#search {
+    border: 1.5px solid var(--primary-light-color);
+    font-size: 1em;
+    transition:
+        border-color 0.3s,
+        box-shadow 0.3s;
+    width: 100%;
+}
+
+#search:focus {
+    border-color: var(--primary-light-color);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    outline: none;
+}
+
+/* Status styles */
+#events-status,
+#status {
+    font-size: 1.3em;
+    padding: 10px 0;
+}
+
+#status.error {
+    color: var(--error-text-color);
+    font-weight: bold;
+}
+
+/* Event styles */
+.event {
+    align-items: center;
+    background-color: var(--primary-color);
+    color: var(--light-text-color);
+    display: flex;
+    font-size: 1.2em;
+    justify-content: space-between;
+    margin-bottom: 2.5px;
+    text-align: left;
+    width: 100%;
+}
+
+.event.page-change {
+    border-top: 5px solid var(--secondary-color);
+}
+
+.event-name {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    flex-grow: 1;
+    padding: 5px;
+}
+
+.event-index {
+    background-color: var(--light-color);
+    color: var(--dark-text-color);
+    font-weight: bold;
+    margin-right: 10px;
+    padding: 2.5px;
+}
+
+.event-btns {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    padding: 5px;
+}
+
+.event-content {
+    background-color: var(--light-color);
+    border-left: 2.5px solid var(--primary-color);
+    display: none;
+    margin-bottom: 2.5px;
+    padding: 10px 15px;
+}
+
+.event.show + .event-content {
+    display: block;
+}
+
+.event.hide + .event-content {
+    display: none;
+}
+
+.event-advanced-info {
+    display: none;
+}
+
+.event-advanced-info.show {
+    display: block;
+}
+
+/* JSON syntax highlighting */
+.json-key {
+    color: var(--primary-color);
+}
+
+.json-boolean {
+    color: #6c5ce7;
+}
+
+.json-number {
+    color: #e17055;
+}
+
+.json-null {
+    color: #d63031;
+}
+
+.json-string {
+    color: #00b894;
+}
+
+/* Animations */
+@keyframes click-animation {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.9);
+    }
+}
+
+.animate {
+    animation: click-animation 0.3s ease;
+}
