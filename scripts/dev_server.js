@@ -29,6 +29,7 @@ function resolveData(filePath) {
 
 // Idea from URL: https://github.com/golang/go/blob/master/src/mime/type.go#L53
 const MIME_TYPES = {
+    '.css': 'text/css; charset=utf-8',
     '.html': 'text/html; charset=utf-8',
     '.js': 'text/javascript; charset=utf-8',
     '.json': 'application/json',
