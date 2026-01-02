@@ -539,7 +539,7 @@ async function queryDataLayerPagesEntries() {
                     updatedAtMs: Date.now() - 10_000,
                 },
             ],
-            maxEntries: 8,
+            maxPages: 8,
             updatedAtMs: Date.now(),
         };
         /* eslint-enable sort-keys-fix/sort-keys-fix */

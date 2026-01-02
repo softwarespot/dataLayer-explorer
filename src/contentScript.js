@@ -111,7 +111,7 @@
         /* eslint-disable sort-keys-fix/sort-keys-fix */
         return {
             pages: [state.currPage],
-            maxEntries: state.config.maxPages,
+            maxPages: state.config.maxPages,
             updatedAtMs: Date.now(),
         };
         /* eslint-enable sort-keys-fix/sort-keys-fix */
@@ -127,6 +127,7 @@
 
     function storePagesEntries() {
         const pagesEntries = getPagesEntries();
+        pagesEntries.maxPages = state.config.maxPages;
         pagesEntries.updatedAtMs = Date.now();
 
         const currPage = pagesEntries.pages.at(-1);
@@ -136,7 +137,7 @@
             pagesEntries.pages[idx] = state.currPage;
         } else {
             // Delete the oldest page entry, if the maximum limit has been reached
-            if (pagesEntries.pages.length === pagesEntries.maxEntries) {
+            if (pagesEntries.pages.length === pagesEntries.maxPages) {
                 pagesEntries.pages.shift();
             }
             pagesEntries.pages.push(state.currPage);
