@@ -63,7 +63,7 @@
                 }
 
                 const dataLayer = window[dataLayerInfo.name];
-                if (isValidDataLayer(dataLayer)) {
+                if (isDataLayer(dataLayer)) {
                     state.total++;
 
                     dataLayerInfo.found = true;
@@ -99,7 +99,7 @@
         return withResolvers.promise;
     }
 
-    function isValidDataLayer(dataLayer) {
+    function isDataLayer(dataLayer) {
         if (!Array.isArray(dataLayer)) {
             return false;
         }
@@ -124,13 +124,15 @@
         }, 256);
 
         return (name, event, trace) => {
-            const afterPageLoadMs = Date.now() - window.performance.timeOrigin;
+            /* eslint-disable sort-keys-fix/sort-keys-fix */
             entries.push({
-                afterPageLoadMs: Math.abs(afterPageLoadMs),
-                event,
+                id: crypto.randomUUID(),
                 name,
+                event,
                 trace,
+                afterPageLoadMs: Math.abs(Date.now() - window.performance.timeOrigin),
             });
+            /* eslint-enable sort-keys-fix/sort-keys-fix */
             deferSendEntries();
         };
     }
@@ -142,9 +144,18 @@
 
     function safeJSONStringify(obj) {
         const seen = new WeakSet();
+        // eslint-disable-next-line sonarjs/cognitive-complexity
         return JSON.stringify(obj, (_, value) => {
             if (isConstructor(value, Date)) {
                 return value.toISOString();
+            }
+            if (isConstructor(value, Error)) {
+                return {
+                    dataType: 'Error',
+                    message: value.message,
+                    name: value.name,
+                    stack: value.stack,
+                };
             }
             if (isConstructor(value, HTMLElement)) {
                 return value.outerHTML;
@@ -164,6 +175,12 @@
                     value: Array.from(value.values()),
                 };
             }
+            if (isConstructor(value, WeakMap)) {
+                return '[WeakMap]';
+            }
+            if (isConstructor(value, WeakSet)) {
+                return '[WeakSet]';
+            }
 
             if (value === Infinity) {
                 return 'Infinity';
@@ -178,9 +195,14 @@
                 return `${value.toString()}n`;
             }
 
+            if (isSymbol(value)) {
+                return value.toString();
+            }
+
             if (isFunction(value)) {
                 return value.toString();
             }
+
             if (isObject(value)) {
                 if (seen.has(value)) {
                     return '[Circular]';
@@ -207,13 +229,24 @@
         return Object(obj) === obj;
     }
 
+    function isSymbol(obj) {
+        return typeof obj === 'symbol';
+    }
+
     // Shared utils
 
     function debounce(fn, delay) {
         let timerId = 0;
         return (...args) => {
             clearTimeout(timerId);
-            timerId = setTimeout(() => fn(...args), delay);
+            timerId = setTimeout(() => {
+                try {
+                    fn(...args);
+                } catch (err) {
+                    // NOTE: Don't log as a warning, as this will show up in the Chrome extension's error listing
+                    console.info(MODULE, err instanceof Error ? err.message : 'An unexpected error occurred');
+                }
+            }, delay);
         };
     }
 

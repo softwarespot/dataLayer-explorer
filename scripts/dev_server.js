@@ -7,14 +7,20 @@ import { fileURLToPath, URL } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 
-// Files should only be served from the "src"
-const __dirname = path.join(path.dirname('..', __filename), 'src');
+// Root directory for serving files
+const rootDir = path.join(path.dirname(__filename), '..');
+const srcDir = path.join(rootDir, 'src');
 
 function resolveURL(url) {
-    if (url.pathname === '/') {
-        return path.join(__dirname, 'popup.html');
+    // Serve the examples page for "/examples" path
+    if (url.pathname.startsWith('/examples')) {
+        return path.join(rootDir, 'examples', 'index.html');
     }
-    return path.join(__dirname, url.pathname);
+
+    if (url.pathname === '/') {
+        return path.join(srcDir, 'popup.html');
+    }
+    return path.join(srcDir, url.pathname);
 }
 
 function resolveData(filePath) {

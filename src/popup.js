@@ -1,17 +1,42 @@
 /* eslint-disable n/no-unsupported-features/node-builtins */
+import { formatAsColumn, formatAsJSON } from './formatters.js';
 import * as GA from './ga4.js';
+import {
+    addEventListener,
+    animate,
+    copyToClipboard,
+    getFirstFlattenedKey,
+    isObject,
+    isString,
+    safeDecode,
+    safeEncode,
+    sleep,
+    toDurationStringMs,
+    toHumanTimeStringMs,
+} from './utils.js';
+
+const MODULE = '[dle]';
 
 // This is set to "development" when using "npm run start"
 const ENVIRONMENT = 'production';
 
 // Taken from "background.js"
+const EVENT_LOAD_CONFIG = 'LOAD_CONFIG';
+const EVENT_SYNC_CONFIG = 'SYNC_CONFIG';
+
 const EVENT_DATALAYER_LOADING = 'DATALAYER_LOADING';
 const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
 const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
 
+const FORMAT_MODE_COLUMN = 'column';
+const FORMAT_MODE_JSON = 'json';
+
+const THEME_MODE_DARK = 'dark';
+const THEME_MODE_LIGHT = 'light';
+
 // Taken from "contentScript.js"
 const EVENT_GET_DATALAYER_STATUS = 'GET_DATALAYER_STATUS';
-const EVENT_GET_DATALAYER_ENTRIES = 'GET_DATALAYER_ENTRIES';
+const EVENT_GET_DATALAYER_PAGES_ENTRIES = 'GET_DATALAYER_PAGES_ENTRIES';
 
 /* eslint-disable sort-keys-fix/sort-keys-fix */
 const state = {
@@ -22,124 +47,242 @@ const state = {
         expandAllBtn: document.getElementById('expand-all-btn'),
         collapseAllBtn: document.getElementById('collapse-all-btn'),
         refreshBtn: document.getElementById('refresh-btn'),
+        settingsToggleBtn: document.getElementById('settings-toggle-btn'),
+        settingsPanel: document.getElementById('settings-panel'),
+        settingsCloseBtn: document.getElementById('settings-close-btn'),
+        maxPagesSelect: document.getElementById('max-pages-select'),
+        formatModeSelect: document.getElementById('format-mode-select'),
+        themeModeSelect: document.getElementById('theme-mode-select'),
         eventsStatus: document.getElementById('events-status'),
         status: document.getElementById('status'),
         eventsContainer: document.getElementById('events-container'),
     },
-    config: {
-        searchTerm: '',
-        expandAll: false,
-    },
-    currEventsIndex: 0,
+    config: undefined,
+    currPageIndex: 0,
+    currEntriesIndex: 0,
+    syncCheckerTimerId: 0,
     emptySyncCounts: 0,
+    expanded: {
+        entryIds: new Map(),
+        advancedInfoEntryIds: new Map(),
+        pageHeaders: new Map(),
+    },
+    formatModes: {
+        entryIds: new Map(),
+    },
 };
 /* eslint-enable sort-keys-fix/sort-keys-fix */
 
 addEventListener(document, 'DOMContentLoaded', async () => {
-    await initConfig();
-    await syncAppVersion();
-    await syncSearchTermInput(state.config.searchTerm);
+    state.config = await getConfig();
+
+    if (ENVIRONMENT === 'development') {
+        state.dom.title.setAttribute('title', `${state.dom.title.textContent} v0.0.0`);
+    } else {
+        const manifest = chrome.runtime.getManifest();
+        state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${manifest.version}`);
+    }
+
+    state.dom.search.value = state.config.searchTerm;
+    state.dom.maxPagesSelect.value = String(state.config.maxPages);
+
+    state.dom.formatModeSelect.value = state.config.formatMode;
+
+    state.dom.themeModeSelect.value = state.config.themeMode;
+    if (state.config.themeMode === THEME_MODE_DARK) {
+        document.body.classList.add('dark-theme');
+    }
 
     const status = await queryDataLayerStatus();
     switch (status) {
         case EVENT_DATALAYER_FOUND: {
-            const els = document.querySelectorAll('.hide');
+            const els = document.querySelectorAll('.hide:not(#settings-panel)');
             for (const el of els) {
                 el.classList.remove('hide');
             }
             state.dom.status.classList.add('hide');
 
-            await syncDataLayerEntries();
-            syncDataLayerEntriesChecker();
+            syncDataLayerPageEntriesChecker();
             break;
         }
         case EVENT_DATALAYER_NOT_FOUND:
             state.dom.status.classList.add('error');
-            state.dom.status.textContent = 'dataLayer is not available on this page.';
+            state.dom.status.textContent = 'There is no dataLayer on this page.';
             break;
     }
 
-    // Create DOM event handlers
-    const deferSetSearchTerm = registerSetSearchTerm();
-    addEventListener(state.dom.search, 'input', (event) => {
-        const searchTerm = event.target.value;
-        syncFilterDataLayerEntries(searchTerm);
+    const deferSetSearchTerm = debounce(async (searchTerm) => {
+        await syncConfig({
+            searchTerm,
+        });
+    }, 256);
+    addEventListener(state.dom.search, 'input', (_, targetEl) => {
+        const searchTerm = targetEl.value;
         deferSetSearchTerm(searchTerm);
+        syncFilterPageEntries(searchTerm);
     });
 
-    addEventListener(state.dom.copyAllBtn, 'click', (event) => {
-        const events = [];
-        const els = state.dom.eventsContainer.querySelectorAll('.event');
-        for (const el of els) {
-            const eventDecoded = encodedAtob(el.getAttribute('data-event'));
-            const event = JSON.parse(eventDecoded);
-            events.push(event);
+    addEventListener(state.dom.copyAllBtn, 'click', (_, targetEl) => {
+        const idxByPageId = new Map();
+        const pages = [];
+        const eventEls = state.dom.eventsContainer.querySelectorAll('.event');
+        for (const eventEl of eventEls) {
+            const pageId = eventEl.getAttribute('data-page-id');
+            if (!idxByPageId.has(pageId)) {
+                const pageIdx = pages.length;
+                idxByPageId.set(pageId, pageIdx);
+
+                const pageURL = safeDecode(eventEl.getAttribute('data-page-url'));
+
+                /* eslint-disable sort-keys-fix/sort-keys-fix */
+                pages[pageIdx] = {
+                    url: pageURL,
+                    events: [],
+                };
+                /* eslint-enable sort-keys-fix/sort-keys-fix */
+            }
+
+            const { parsed: eventData } = getEventDataFromElement(eventEl);
+
+            const pageIdx = idxByPageId.get(pageId);
+            pages[pageIdx].events.push(eventData);
         }
-        if (copyToClipboard(JSON.stringify(events, undefined, 2))) {
-            animate(event.target);
+
+        if (copyToClipboard(JSON.stringify(pages, undefined, 2))) {
+            animate(targetEl);
         }
     });
 
-    addEventListener(state.dom.expandAllBtn, 'click', (event) => {
-        syncDataLayerEntriesCollapsable(event.target, true);
+    addEventListener(state.dom.expandAllBtn, 'click', (_, targetEl) => {
+        syncPageEntriesExpandedOrCollapsed(targetEl, true);
     });
 
-    addEventListener(state.dom.collapseAllBtn, 'click', (event) => {
-        syncDataLayerEntriesCollapsable(event.target, false);
+    addEventListener(state.dom.collapseAllBtn, 'click', (_, targetEl) => {
+        syncPageEntriesExpandedOrCollapsed(targetEl, false);
     });
 
-    addEventListener(state.dom.refreshBtn, 'click', async (event) => {
-        animate(event.target);
-
-        await syncDataLayerEntries();
+    addEventListener(state.dom.refreshBtn, 'click', async (_, targetEl) => {
+        animate(targetEl);
+        await syncDataLayerRefreshPagesEntries();
     });
 
-    addEventListener(document, 'click', '.event-name', (event, targetEl) => {
+    addEventListener(state.dom.settingsToggleBtn, 'click', (_, targetEl) => {
+        animate(targetEl);
+        state.dom.settingsPanel.classList.toggle('hide');
+    });
+
+    addEventListener(state.dom.settingsCloseBtn, 'click', (_, targetEl) => {
+        animate(targetEl);
+        state.dom.settingsPanel.classList.add('hide');
+    });
+
+    addEventListener(state.dom.maxPagesSelect, 'change', async (_, targetEl) => {
+        const maxPages = Number(targetEl.value);
+        await syncConfig({
+            maxPages,
+        });
+        await syncDataLayerRefreshPagesEntries();
+    });
+
+    addEventListener(state.dom.formatModeSelect, 'change', async (_, targetEl) => {
+        const formatMode = targetEl.value;
+        await syncConfig({
+            formatMode,
+        });
+        await syncDataLayerRefreshPagesEntries();
+    });
+
+    addEventListener(state.dom.themeModeSelect, 'change', async (_, targetEl) => {
+        const themeMode = targetEl.value;
+        document.body.classList.toggle('dark-theme', themeMode === THEME_MODE_DARK);
+        await syncConfig({
+            themeMode,
+        });
+    });
+
+    addEventListener(document, 'click', '.page-header', (_, targetEl) => {
+        // Skip toggling, when clicking the URL
+        if (targetEl.matches('.page-header-url') || targetEl.closest('.page-header-url')) {
+            return;
+        }
+
+        const expanded = targetEl.classList.toggle('show');
+        const collapsed = !expanded;
+
+        const pageId = targetEl.getAttribute('data-page-id');
+        state.expanded.pageHeaders.set(pageId, expanded);
+
+        const eventEls = state.dom.eventsContainer.querySelectorAll(`.event[data-page-id="${pageId}"]`);
+        for (const eventEl of eventEls) {
+            eventEl.classList.toggle('page-collapsed', collapsed);
+        }
+    });
+
+    addEventListener(document, 'click', '.event-name', (_, targetEl) => {
         const eventEl = targetEl.closest('.event');
-        eventEl.classList.toggle('show');
+        const shouldExpand = !eventEl.classList.contains('show');
+        updatePageEntriesExpandOrCollapse([eventEl], shouldExpand);
     });
 
-    addEventListener(document, 'click', '.event-copy-btn', (event, targetEl) => {
+    addEventListener(document, 'click', '.event-copy-btn', (_, targetEl) => {
         const eventEl = targetEl.closest('.event');
-        const eventDecoded = encodedAtob(eventEl.getAttribute('data-event'));
+        const { decoded: eventDecoded } = getEventDataFromElement(eventEl);
         if (copyToClipboard(eventDecoded)) {
             animate(targetEl);
         }
     });
 
-    addEventListener(document, 'click', '.event-advanced-info-btn', (event, targetEl) => {
+    addEventListener(document, 'click', '.event-format-toggle-btn', (_, targetEl) => {
         animate(targetEl);
+
         const eventEl = targetEl.closest('.event');
-        eventEl.classList.add('show');
+        const entryId = eventEl.getAttribute('data-entry-id');
+        const { decoded: eventDecoded, parsed: eventData } = getEventDataFromElement(eventEl);
+
+        const currFormat = state.formatModes.entryIds.get(entryId) ?? state.config.formatMode;
+        const toggledFormat = currFormat === FORMAT_MODE_JSON ? FORMAT_MODE_COLUMN : FORMAT_MODE_JSON;
+        state.formatModes.entryIds.set(entryId, toggledFormat);
+
+        const eventDataEl = eventEl.nextElementSibling.querySelector('.event-data');
+        renderEventData(eventDataEl, eventData, eventDecoded, toggledFormat);
+    });
+
+    addEventListener(document, 'click', '.event-advanced-info-btn', (_, targetEl) => {
+        animate(targetEl);
+
+        const eventEl = targetEl.closest('.event');
+        updatePageEntriesExpandOrCollapse([eventEl], true);
 
         // The event content is the next sibling in the DOM tree
         const eventTraceEl = eventEl.nextElementSibling.querySelector('.event-advanced-info');
-        eventTraceEl.classList.toggle('show');
+        const isExpanded = eventTraceEl.classList.toggle('show');
+        const entryId = eventEl.getAttribute('data-entry-id');
+        state.expanded.advancedInfoEntryIds.set(entryId, isExpanded);
     });
 });
 
-async function initConfig() {
+async function getConfig() {
     if (ENVIRONMENT === 'development') {
         const res = sessionStorage.getItem('config');
         if (isString(res)) {
-            const cfg = JSON.parse(res);
-            state.config = {
-                ...state.config,
-                ...cfg,
-            };
+            return JSON.parse(res);
         }
-    } else {
-        const res = await chrome.storage.session.get(['config']);
-        if (isObject(res.config)) {
-            state.config = {
-                ...state.config,
-                ...res.config,
-            };
-        }
+
+        // Taken from "background.js"
+        /* eslint-disable sort-keys-fix/sort-keys-fix */
+        return {
+            searchTerm: '',
+            expandAll: false,
+            maxPages: 0,
+            formatMode: FORMAT_MODE_JSON,
+            themeMode: THEME_MODE_LIGHT,
+        };
+        /* eslint-enable sort-keys-fix/sort-keys-fix */
     }
+    return sendToBackground(EVENT_LOAD_CONFIG);
 }
 
-function syncConfig(cfgPartial) {
+async function syncConfig(cfgPartial) {
     state.config = {
         ...state.config,
         ...cfgPartial,
@@ -147,23 +290,267 @@ function syncConfig(cfgPartial) {
     if (ENVIRONMENT === 'development') {
         sessionStorage.setItem('config', JSON.stringify(state.config));
     } else {
-        chrome.storage.session.set({
-            config: state.config,
-        });
+        await sendToBackground(EVENT_SYNC_CONFIG, state.config);
+        await sendToContentScript(EVENT_SYNC_CONFIG, state.config);
     }
 }
 
-async function syncAppVersion() {
+// dataLayer query functions
+
+async function queryDataLayerStatus() {
     if (ENVIRONMENT === 'development') {
-        state.dom.title.setAttribute('title', `${state.dom.title.textContent} v0.0.0`);
-    } else {
-        const manifest = chrome.runtime.getManifest();
-        state.dom.title.setAttribute('title', `${state.dom.title.textContent} v${manifest.version}`);
+        return EVENT_DATALAYER_FOUND;
     }
+
+    const endTimeMs = Date.now() + 30_000;
+    while (Date.now() < endTimeMs) {
+        try {
+            const res = await sendToContentScript(EVENT_GET_DATALAYER_STATUS);
+            switch (res.status) {
+                case EVENT_DATALAYER_FOUND:
+                case EVENT_DATALAYER_NOT_FOUND:
+                    return res.status;
+                case EVENT_DATALAYER_LOADING:
+                default:
+                    break;
+            }
+        } catch {
+            // Ignore the error, as it means the "contentScript.js" is not available
+        }
+
+        // Continue to wait for the status from the "contentScript.js"
+        await sleep(512);
+    }
+    return EVENT_DATALAYER_NOT_FOUND;
 }
 
-async function syncDataLayerEntriesChecker() {
-    const hasSyncedEntries = await syncDataLayerEntries();
+async function queryDataLayerPagesEntries() {
+    if (ENVIRONMENT === 'development') {
+        /* eslint-disable sort-keys-fix/sort-keys-fix */
+        return {
+            pages: [
+                {
+                    id: 'page-0',
+                    entries: [
+                        {
+                            id: 'entry-0-0',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'page_view',
+                                page_title: 'dataLayer Explorer - Example Events',
+                                page_location: 'https://www.example.com/',
+                                page_path: '/',
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:89:32)',
+                            afterPageLoadMs: 50,
+                        },
+                        {
+                            id: 'entry-0-1',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'view_item',
+                                ecommerce: {
+                                    currency: 'USD',
+                                    value: 29.99,
+                                    items: [
+                                        {
+                                            item_id: 'SKU_12345',
+                                            item_name: 'Premium Widget',
+                                            item_brand: 'WidgetCo',
+                                            item_category: 'Electronics',
+                                            item_variant: 'Blue',
+                                            price: 29.99,
+                                            quantity: 1,
+                                        },
+                                    ],
+                                },
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:120:32)',
+                            afterPageLoadMs: 1250,
+                        },
+                        {
+                            id: 'entry-0-2',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'add_to_cart',
+                                ecommerce: {
+                                    currency: 'USD',
+                                    value: 29.99,
+                                    items: [
+                                        {
+                                            item_id: 'SKU_12345',
+                                            item_name: 'Premium Widget',
+                                            item_brand: 'WidgetCo',
+                                            item_category: 'Electronics',
+                                            price: 29.99,
+                                            quantity: 1,
+                                        },
+                                    ],
+                                },
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:142:32)',
+                            afterPageLoadMs: 2800,
+                        },
+                    ],
+                    url: 'https://www.example.com/',
+                    updatedAtMs: Date.now() - 120000,
+                },
+                {
+                    id: 'page-1',
+                    entries: [
+                        {
+                            id: 'entry-1-0',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'page_view',
+                                page_title: 'Product Details - Premium Widget',
+                                page_location: 'https://www.example.com/products/premium-widget',
+                                page_path: '/products/premium-widget',
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:89:32)',
+                            afterPageLoadMs: 75,
+                        },
+                        {
+                            id: 'entry-1-1',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'select_item',
+                                ecommerce: {
+                                    item_list_id: 'featured_products',
+                                    item_list_name: 'Featured Products',
+                                    items: [
+                                        {
+                                            item_id: 'SKU_12345',
+                                            item_name: 'Premium Widget',
+                                        },
+                                    ],
+                                },
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:202:32)',
+                            afterPageLoadMs: 1500,
+                        },
+                        {
+                            id: 'entry-1-2',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'view_promotion',
+                                ecommerce: {
+                                    creative_name: 'summer_banner',
+                                    creative_slot: 'hero_banner',
+                                    promotion_id: 'SUMMER2026',
+                                    promotion_name: 'Summer Sale',
+                                    items: [
+                                        {
+                                            item_id: 'SKU_12345',
+                                            item_name: 'Premium Widget',
+                                        },
+                                    ],
+                                },
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:218:32)',
+                            afterPageLoadMs: 3200,
+                        },
+                        {
+                            id: 'entry-1-3',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'begin_checkout',
+                                ecommerce: {
+                                    currency: 'USD',
+                                    value: 59.98,
+                                    items: [
+                                        {
+                                            item_id: 'SKU_12345',
+                                            item_name: 'Premium Widget',
+                                            price: 29.99,
+                                            quantity: 2,
+                                        },
+                                    ],
+                                },
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:178:32)',
+                            afterPageLoadMs: 5100,
+                        },
+                    ],
+                    url: 'https://www.example.com/products/premium-widget',
+                    updatedAtMs: Date.now() - 60_000,
+                },
+                {
+                    id: 'page-2',
+                    entries: [
+                        {
+                            id: 'entry-2-0',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'page_view',
+                                page_title: 'Checkout',
+                                page_location: 'https://www.example.com/checkout',
+                                page_path: '/checkout',
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:89:32)',
+                            afterPageLoadMs: 100,
+                        },
+                        {
+                            id: 'entry-2-1',
+                            name: 'dataLayer',
+                            event: {
+                                event: 'purchase',
+                                ecommerce: {
+                                    transaction_id: 'T_1735822800000',
+                                    currency: 'USD',
+                                    value: 64.98,
+                                    tax: 5.0,
+                                    shipping: 0,
+                                    items: [
+                                        {
+                                            item_id: 'SKU_12345',
+                                            item_name: 'Premium Widget',
+                                            price: 29.99,
+                                            quantity: 2,
+                                        },
+                                    ],
+                                },
+                            },
+                            trace: 'at HTMLButtonElement.<anonymous> (index.html:192:32)',
+                            afterPageLoadMs: 3500,
+                        },
+                        {
+                            id: 'entry-2-2',
+                            name: '_mtm',
+                            event: {
+                                'mtm.purchase': {
+                                    order_id: 'T_1735822800000',
+                                    revenue: 64.98,
+                                    products: [
+                                        {
+                                            sku: 'SKU_12345',
+                                            name: 'Premium Widget',
+                                            price: 29.99,
+                                            quantity: 2,
+                                        },
+                                    ],
+                                },
+                            },
+                            trace: 'at window._mtm.push (matomo.js:45:12)',
+                            afterPageLoadMs: 3520,
+                        },
+                    ],
+                    url: 'https://www.example.com/checkout',
+                    updatedAtMs: Date.now() - 10_000,
+                },
+            ],
+            maxEntries: 8,
+            updatedAtMs: Date.now(),
+        };
+        /* eslint-enable sort-keys-fix/sort-keys-fix */
+    }
+    return sendToContentScript(EVENT_GET_DATALAYER_PAGES_ENTRIES);
+}
+
+// dataLayer sync functions
+
+async function syncDataLayerPageEntriesChecker() {
+    const hasSyncedEntries = await syncDataLayerPagesEntries();
     if (hasSyncedEntries) {
         state.emptySyncCounts = 0;
     } else {
@@ -172,212 +559,219 @@ async function syncDataLayerEntriesChecker() {
 
     // Continue for a maximum of 30 times i.e. ~30 seconds
     if (state.emptySyncCounts < 30) {
-        setTimeout(syncDataLayerEntriesChecker, 1024);
+        state.syncCheckerTimerId = setTimeout(syncDataLayerPageEntriesChecker, 1024);
+    } else {
+        state.syncCheckerTimerId = 0;
     }
 }
 
-async function syncSearchTermInput(searchTerm) {
-    state.dom.search.value = searchTerm;
+async function syncDataLayerRefreshPagesEntries() {
+    state.dom.eventsContainer.replaceChildren();
+    state.currPageIndex = 0;
+    state.currEntriesIndex = 0;
+
+    clearTimeout(state.syncCheckerTimerId);
+    state.syncCheckerTimerId = 0;
+
+    state.emptySyncCounts = 0;
+
+    return syncDataLayerPagesEntries();
 }
 
-function registerSetSearchTerm() {
-    return debounce((searchTerm) => {
-        syncConfig({
-            searchTerm,
-        });
-    }, 256);
-}
+async function syncDataLayerPagesEntries() {
+    const hasMaxPagesLimit = state.config.maxPages > 0;
 
-function syncDataLayerEntriesCollapsable(el, expandAll) {
-    animate(el);
+    const pagesEntries = await queryDataLayerPagesEntries();
+    const currPageIndex = pagesEntries.pages.length - 1;
+    state.currPageIndex = Math.min(state.currPageIndex, currPageIndex);
 
-    const els = state.dom.eventsContainer.querySelectorAll('.event');
-    for (const el of els) {
-        if (expandAll) {
-            el.classList.add('show');
-        } else {
-            el.classList.remove('show');
+    const currEntriesLength = pagesEntries.pages[state.currPageIndex]?.entries?.length ?? 0;
+    const hasSyncableEntries = state.currEntriesIndex < currEntriesLength;
+
+    for (; state.currPageIndex < pagesEntries.pages.length; state.currPageIndex += 1) {
+        const isCurrPage = state.currPageIndex === currPageIndex;
+        if (!hasMaxPagesLimit && !isCurrPage) {
+            continue;
         }
-    }
 
-    syncConfig({
-        expandAll,
-    });
-}
+        const page = pagesEntries.pages[state.currPageIndex];
+        const entries = page.entries;
 
-async function queryDataLayerStatus() {
-    if (ENVIRONMENT === 'development') {
-        return EVENT_DATALAYER_FOUND;
-    }
+        for (; state.currEntriesIndex < entries.length; state.currEntriesIndex += 1) {
+            const entry = entries[state.currEntriesIndex];
+            const entryIdx = state.currEntriesIndex + 1;
 
-    while (true) {
-        try {
-            const data = await sendToContentScript(EVENT_GET_DATALAYER_STATUS);
-            switch (data.status) {
-                case EVENT_DATALAYER_FOUND:
-                case EVENT_DATALAYER_NOT_FOUND:
-                    return data.status;
-                case EVENT_DATALAYER_LOADING:
-                default:
-                    // Continue to wait for the status from the "contentScript.js"
-                    break;
-            }
-            await sleep(512);
-        } catch {
-            // Ignore the error, as it means the "contentScript.js" is not available
-            return EVENT_DATALAYER_LOADING;
+            const eventFragment = createEventElement(page, entry, entryIdx);
+            state.dom.eventsContainer.insertBefore(eventFragment, state.dom.eventsContainer.firstChild);
         }
-    }
-}
 
-async function queryDataLayerEntries() {
-    if (ENVIRONMENT === 'development') {
-        return [
-            {
-                afterPageLoadMs: 5000,
-                event: {
-                    eventName: 'generic_event_1',
-                    genericTimestamp: 1234567890123,
-                },
-                name: 'dataLayer',
-                trace: 'Example stack trace',
-            },
-            {
-                afterPageLoadMs: 5000,
-                event: {
-                    event: 'select_item',
-                },
-                name: 'dataLayer',
-                trace: 'Example stack trace',
-            },
-            {
-                afterPageLoadMs: 5000,
-                event: {
-                    genericProperty: null,
-                },
-                name: 'dataLayer',
-                trace: 'Example stack trace',
-            },
-            {
-                afterPageLoadMs: 5000,
-                event: {
-                    eventName: 'generic_event_2',
-                    genericAttribute1: '<a href="">Generic Link</a>',
-                    genericAttribute2: '',
-                    pageTitle: 'Generic Page Title',
-                    pageUrl: 'https://www.example.com/',
-                    url: 'https://www.example.com/',
-                    userStatus: 'generic_Status',
-                },
-                name: 'dataLayer',
-                trace: 'Example stack trace',
-            },
-            {
-                afterPageLoadMs: 5000,
-                event: {
-                    contentId: 'Generic Content ID',
-                    contentIndex: 2,
-                    contentType: 'Generic Content Type',
-                    eventName: 'generic_event_3',
-                    linkUrl: 'https://example.com/generic-product',
-                },
-                name: 'dataLayer',
-                trace: 'Example stack trace',
-            },
-            {
-                afterPageLoadMs: 5000,
-                event: {
-                    genericObject: {
-                        genericView: {
-                            items: [],
-                            mode: '',
-                        },
-                    },
-                },
-                name: 'dataLayer',
-                trace: 'Example stack trace',
-            },
-            {
-                afterPageLoadMs: 5000,
-                event: {
-                    mtmObject: {
-                        mtmView: {
-                            items: [],
-                            mode: '',
-                        },
-                    },
-                },
-                name: '_mtm',
-                trace: 'Example stack trace',
-            },
-        ];
-    }
+        if (!isCurrPage) {
+            state.currEntriesIndex = 0;
 
-    const data = await sendToContentScript(EVENT_GET_DATALAYER_ENTRIES);
-    return JSON.parse(data.entries);
-}
-
-async function syncDataLayerEntries() {
-    const entries = await queryDataLayerEntries();
-    const hasSyncableEntries = state.currEventsIndex < entries.length;
-    for (; state.currEventsIndex < entries.length; state.currEventsIndex += 1) {
-        const entry = entries[state.currEventsIndex];
-        const entryIdx = state.currEventsIndex + 1;
-
-        const eventEl = createEventElement(entry, entryIdx);
-        state.dom.eventsContainer.insertBefore(eventEl, state.dom.eventsContainer.firstChild);
+            const headerEl = createEventHeaderElement(page);
+            state.dom.eventsContainer.insertBefore(headerEl, state.dom.eventsContainer.firstChild);
+        }
     }
     if (!hasSyncableEntries) {
         return false;
     }
 
-    syncFilterDataLayerEntries(state.dom.search.value);
+    syncFilterPageEntries(state.dom.search.value);
+
     return true;
 }
 
-function createEventElement(entry, entryIdx) {
-    const event = JSON.stringify(entry.event, undefined, 2);
-    const afterPageLoad = toDurationString(entry.afterPageLoadMs);
+async function syncPageEntriesExpandedOrCollapsed(btnEl, expandAll) {
+    animate(btnEl);
 
-    const eventTemplate = document.getElementById('event-template');
-    const eventClone = eventTemplate.content.cloneNode(true);
+    const eventEls = state.dom.eventsContainer.querySelectorAll('.event');
+    updatePageEntriesExpandOrCollapse(eventEls, expandAll);
 
-    // Configure the main event element
-    const eventEl = eventClone.querySelector('.event');
-    const isGTMHistoryChangeV2 = entry.event?.event === 'gtm.historyChange-v2';
-    const eventClasses = [
-        'event',
-        isGTMHistoryChangeV2 ? 'page-change' : '',
-        state.config.expandAll ? 'show' : '',
-    ].join(' ');
+    await syncConfig({
+        expandAll,
+    });
+}
 
-    eventEl.className = eventClasses;
-    eventEl.setAttribute('data-event', encodedBtoa(event));
+function updatePageEntriesExpandOrCollapse(eventEls, expandAll) {
+    for (const eventEl of eventEls) {
+        eventEl.classList.toggle('show', expandAll);
 
-    // Configure event name section
-    const eventNameEl = eventClone.querySelector('.event-name');
-    eventNameEl.setAttribute(
-        'title',
-        `Event was sent ${afterPageLoad} after the initial page load and was pushed to window.${entry.name}.`,
-    );
+        const entryId = eventEl.getAttribute('data-entry-id');
+        state.expanded.entryIds.set(entryId, expandAll);
+    }
+}
 
-    eventClone.querySelector('.event-index').textContent = entryIdx;
-    eventClone.querySelector('.event-name-text').textContent = getEventName(entry.event);
+function syncFilterPageEntries(searchTerm) {
+    const matchedPageIds = new Set();
+    const eventEls = state.dom.eventsContainer.querySelectorAll('.event');
+    for (const eventEl of eventEls) {
+        const { decoded: eventDecoded } = getEventDataFromElement(eventEl);
+        const matches = isMatch(eventDecoded, searchTerm);
+        eventEl.classList.toggle('hide', !matches);
 
-    // Configure icon
-    const iconContainer = eventClone.querySelector('.event-icon-container');
-    const iconEl = getEventIconElement(entry);
-    if (iconEl) {
-        iconContainer.appendChild(iconEl);
+        if (matches) {
+            matchedPageIds.add(eventEl.getAttribute('data-page-id'));
+        }
     }
 
-    // Configure event content
-    eventClone.querySelector('.event-json').innerHTML = jsonSyntaxHighlight(event);
-    eventClone.querySelector('.event-details').innerHTML =
-        `The event was sent ${afterPageLoad} after the initial page load and was pushed to <code>window.${entry.name}</code>.`;
-    eventClone.querySelector('.event-trace').textContent = entry.trace;
+    const headerEls = state.dom.eventsContainer.querySelectorAll('.page-header');
+    for (const headerEl of headerEls) {
+        const pageId = headerEl.getAttribute('data-page-id');
+        headerEl.classList.toggle('hide', !matchedPageIds.has(pageId));
+    }
 
-    return eventClone;
+    state.dom.eventsStatus.classList.toggle('hide', matchedPageIds.size > 0);
+}
+
+function isMatch(str, query) {
+    if (query.length === 0) {
+        return true;
+    }
+
+    str = str.toLowerCase();
+    query = query.toLowerCase();
+
+    return str.includes(query);
+}
+
+// DOM creation functions
+
+function getEventDataFromElement(eventEl) {
+    const eventDecoded = safeDecode(eventEl.getAttribute('data-entry-event'));
+    return {
+        decoded: eventDecoded,
+        parsed: JSON.parse(eventDecoded),
+    };
+}
+
+function renderEventData(eventDataEl, event, strEvent, formatMode) {
+    if (formatMode === FORMAT_MODE_COLUMN) {
+        eventDataEl.innerHTML = formatAsColumn(event);
+    } else {
+        eventDataEl.innerHTML = formatAsJSON(strEvent);
+    }
+}
+
+function createEventHeaderElement(page) {
+    const template = document.getElementById('page-header-template');
+    const fragment = template.content.cloneNode(true);
+
+    const headerEl = fragment.querySelector('.page-header');
+    headerEl.setAttribute('data-page-id', page.id);
+    headerEl.title = page.url;
+
+    const isExpanded = state.expanded.pageHeaders.get(page.id) ?? true;
+    if (!isExpanded) {
+        headerEl.classList.remove('show');
+    }
+
+    const urlLinkEl = fragment.querySelector('.page-header-url');
+    urlLinkEl.href = page.url;
+    urlLinkEl.textContent = page.url;
+
+    const timeEl = fragment.querySelector('.page-header-time');
+    timeEl.textContent = toHumanTimeStringMs(page.updatedAtMs);
+
+    return fragment;
+}
+
+function createEventElement(page, entry, entryIdx) {
+    const strEvent = JSON.stringify(entry.event, undefined, 2);
+    const strAfterPageLoadMs = toDurationStringMs(entry.afterPageLoadMs);
+
+    const template = document.getElementById('event-template');
+    const fragment = template.content.cloneNode(true);
+
+    const eventEl = fragment.querySelector('.event');
+    eventEl.setAttribute('data-page-id', page.id);
+    eventEl.setAttribute('data-page-url', safeEncode(page.url));
+    eventEl.setAttribute('data-entry-id', entry.id);
+    eventEl.setAttribute('data-entry-event', safeEncode(strEvent));
+
+    eventEl.className = 'event';
+    if (entry.event?.event === 'gtm.historyChange-v2') {
+        eventEl.classList.add('page-change');
+    }
+
+    const eventExpanded = state.expanded.entryIds.get(entry.id) ?? state.config.expandAll;
+    if (eventExpanded) {
+        eventEl.classList.add('show');
+    }
+
+    const pageHeaderExpanded = state.expanded.pageHeaders.get(page.id) ?? true;
+    if (!pageHeaderExpanded) {
+        eventEl.classList.add('page-collapsed');
+    }
+
+    const eventNameEl = fragment.querySelector('.event-name');
+    eventNameEl.setAttribute(
+        'title',
+        `Event was sent ${strAfterPageLoadMs} after the initial page load and was pushed to window.${entry.name}.`,
+    );
+
+    fragment.querySelector('.event-index').textContent = entryIdx;
+    fragment.querySelector('.event-name-text').textContent = getEventName(entry.event);
+
+    const iconContainerEl = fragment.querySelector('.event-icon-container');
+    const iconEl = getEventIconElement(entry);
+    if (iconEl) {
+        iconContainerEl.appendChild(iconEl);
+    }
+
+    const formatMode = state.formatModes.entryIds.get(entry.id) ?? state.config.formatMode;
+    const eventDataEl = fragment.querySelector('.event-data');
+    renderEventData(eventDataEl, entry.event, strEvent, formatMode);
+
+    const eventAdvancedInfoEl = fragment.querySelector('.event-advanced-info');
+
+    const eventAdvancedInfoExpanded = state.expanded.advancedInfoEntryIds.get(entry.id) ?? false;
+    eventAdvancedInfoEl.classList.toggle('show', eventAdvancedInfoExpanded);
+
+    fragment.querySelector('.event-details').innerHTML =
+        `The event was sent ${strAfterPageLoadMs} after the initial page load and was pushed to <code>window.${entry.name}</code>.`;
+    fragment.querySelector('.event-trace').textContent = entry.trace;
+
+    return fragment;
 }
 
 function getEventName(obj) {
@@ -408,238 +802,20 @@ function getEventIconElement(entry) {
                 return undefined;
             }
 
-            const ga4Template = document.querySelector('#ga4-icon-template');
-            const ga4Clone = ga4Template.content.cloneNode(true);
-            const linkEl = ga4Clone.querySelector('a');
+            const template = document.querySelector('#ga4-icon-template');
+            const fragment = template.content.cloneNode(true);
+            const linkEl = fragment.querySelector('a');
             linkEl.href = eventInfo.url;
 
-            return ga4Clone;
+            return fragment;
         }
         case '_mtm': {
-            const matomoTemplate = document.querySelector('#matomo-icon-template');
-            return matomoTemplate.content.cloneNode(true);
+            const template = document.querySelector('#matomo-icon-template');
+            return template.content.cloneNode(true);
         }
         default:
             return undefined;
     }
-}
-
-function getFirstFlattenedKey(obj, depth = 2, currDepth = 1) {
-    if (!isObject(obj)) {
-        return undefined;
-    }
-
-    for (const key in obj) {
-        if (!Object.hasOwn(obj, key)) {
-            continue;
-        }
-        if (currDepth === depth) {
-            return key;
-        }
-
-        const nextKey = getFirstFlattenedKey(obj[key], depth, currDepth + 1);
-        if (isString(nextKey) && nextKey.length > 0) {
-            return `${key}.${nextKey}`;
-        }
-        return key;
-    }
-    return undefined;
-}
-
-function syncFilterDataLayerEntries(searchTerm) {
-    const els = state.dom.eventsContainer.querySelectorAll('.event');
-    for (const el of els) {
-        const eventDecoded = encodedAtob(el.getAttribute('data-event'));
-        if (isMatching(eventDecoded, searchTerm)) {
-            el.classList.remove('hide');
-        } else {
-            el.classList.add('hide');
-        }
-    }
-
-    const hiddenEls = state.dom.eventsContainer.querySelectorAll('.event:not(.hide)');
-    if (hiddenEls.length === 0) {
-        state.dom.eventsStatus.classList.remove('hide');
-    } else {
-        state.dom.eventsStatus.classList.add('hide');
-    }
-}
-
-function isMatching(str, query) {
-    if (query.length === 0) {
-        return true;
-    }
-
-    str = str.toLowerCase();
-    query = query.toLowerCase();
-
-    return str.includes(query);
-}
-
-function jsonSyntaxHighlight(data) {
-    // Taken from URL: https://codepen.io/absolutedevelopment/pen/EpwVzN
-    // Group 1: String literals with proper escape handling
-    //   - "(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*" - strings with unicode/escape sequences
-    //   - (\s*:)? - optional colon for object keys
-    // Group 2: Primitive literals
-    //   - \b(true|false|null)\b - boolean and null literals (word boundaries prevent partial matches)
-    // Group 3: Numeric literals
-    //   - -?\d+(?:\.\d*)?(?:[eE][+-]?\d+)? - integers, floats, scientific notation
-    const reParseJSON =
-        // eslint-disable-next-line security/detect-unsafe-regex, sonarjs/regex-complexity
-        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g;
-
-    return data
-        .replace(/[&<>]/g, (char) => {
-            switch (char) {
-                case '&':
-                    return '&amp;';
-                case '<':
-                    return '&lt;';
-                case '>':
-                    return '&gt;';
-                default:
-                    return char;
-            }
-        })
-        .replace(reParseJSON, (str) => {
-            const className = getJSONSyntaxHighlightClassName(str);
-            return `<span class="${className}">${truncate(str, 256)}</span>`;
-        });
-}
-
-function getJSONSyntaxHighlightClassName(str) {
-    if (str.startsWith('"')) {
-        if (str.endsWith(':')) {
-            return 'json-key';
-        }
-        return 'json-string';
-    }
-    if (str === 'true' || str === 'false') {
-        return 'json-boolean';
-    }
-    if (str === 'null') {
-        return 'json-null';
-    }
-    return 'json-number';
-}
-
-// Utils
-
-function animate(el) {
-    el.classList.add('animate');
-
-    // Remove after 0.3s, which is the same as the CSS animation
-    setTimeout(() => el.classList.remove('animate'), 300);
-}
-
-function addEventListener(el, eventName, selector, fn) {
-    if (isFunction(fn)) {
-        fn = createDelegateEventHandler(el, selector, fn);
-    } else {
-        fn = selector;
-    }
-    el.addEventListener(eventName, fn);
-}
-
-function createDelegateEventHandler(el, selector, fn) {
-    return (event) => {
-        const targetEl = event.target.closest(selector);
-        if (targetEl && el.contains(targetEl)) {
-            fn(event, targetEl);
-        }
-    };
-}
-
-// Taken from URL: https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
-// NOTE: This is due to "navigator.clipboard.writeText" requiring HTTPS
-function copyToClipboard(text) {
-    const el = document.createElement('textarea');
-    try {
-        el.value = text;
-
-        // Avoid scrolling to the bottom
-        el.style.top = '0';
-        el.style.left = '0';
-        el.style.position = 'fixed';
-
-        document.body.appendChild(el);
-        el.focus();
-        el.select();
-
-        document.execCommand('copy');
-        return true;
-    } catch {
-        // Ignore error
-    } finally {
-        if (document.body) {
-            document.body.removeChild(el);
-        }
-    }
-    return false;
-}
-
-function isFunction(obj) {
-    return typeof obj === 'function';
-}
-
-function isObject(obj) {
-    return Object(obj) === obj;
-}
-
-function isString(obj) {
-    return typeof obj === 'string';
-}
-
-async function sleep(ms) {
-    return new Promise((resolve) => {
-        setTimeout(() => resolve(), ms);
-    });
-}
-
-function toDurationString(ms) {
-    // Originally taken from URL: https://stackoverflow.com/a/34270811
-    // Taken from URL: https://madza.hashnode.dev/24-modern-es6-code-snippets-to-solve-practical-js-problems
-    const sign = ms < 0 ? '-' : '';
-    const absMS = Math.abs(Math.round(ms));
-    if (absMS === 0) {
-        return `${sign}0ms`;
-    }
-
-    if (Number.isNaN(absMS)) {
-        return '"invalid milliseconds"';
-    }
-
-    /* eslint-disable sort-keys-fix/sort-keys-fix */
-    const time = {
-        d: Math.floor(absMS / 86400000),
-        h: Math.floor(absMS / 3600000) % 24,
-        m: Math.floor(absMS / 60000) % 60,
-        s: Math.floor(absMS / 1000) % 60,
-        ms: Math.floor(absMS) % 1000,
-    };
-    /* eslint-enable sort-keys-fix/sort-keys-fix */
-
-    return (
-        sign +
-        Object.entries(time)
-            .filter(([, value]) => value > 0)
-            .map(([key, value]) => `${value}${key}`)
-            .join('')
-    );
-}
-
-function truncate(str, maxLen, prefix = '...') {
-    str = String(str);
-    return str.length > maxLen ? `${str.slice(0, maxLen)}${prefix}` : str;
-}
-
-function encodedBtoa(str) {
-    return btoa(encodeURIComponent(str));
-}
-
-function encodedAtob(str) {
-    return decodeURIComponent(atob(str));
 }
 
 // Shared utils
@@ -648,8 +824,24 @@ function debounce(fn, delay) {
     let timerId = 0;
     return (...args) => {
         clearTimeout(timerId);
-        timerId = setTimeout(() => fn(...args), delay);
+        timerId = setTimeout(() => {
+            try {
+                fn(...args);
+            } catch (err) {
+                // NOTE: Don't log as a warning, as this will show up in the Chrome extension's error listing
+                console.info(MODULE, err instanceof Error ? err.message : 'An unexpected error occurred');
+            }
+        }, delay);
     };
+}
+
+async function sendToBackground(event, data = undefined) {
+    /* eslint-disable sort-keys-fix/sort-keys-fix */
+    return chrome.runtime.sendMessage({
+        event,
+        data,
+    });
+    /* eslint-enable sort-keys-fix/sort-keys-fix */
 }
 
 async function sendToContentScript(event, data = undefined) {

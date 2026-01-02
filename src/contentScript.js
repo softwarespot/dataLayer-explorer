@@ -1,55 +1,82 @@
+/* eslint-disable n/no-unsupported-features/node-builtins */
+
 (async function main() {
+    const MODULE = '[dle]';
+
     // Taken from "background.js"
+    const EVENT_LOAD_CONFIG = 'LOAD_CONFIG';
+    const EVENT_SYNC_CONFIG = 'SYNC_CONFIG';
+
     const EVENT_DATALAYER_LOADING = 'DATALAYER_LOADING';
     const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
     const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
     const EVENT_SYNC_DATALAYER_STATUS = 'SYNC_DATALAYER_STATUS';
-
-    const EVENT_DATALAYER_ENTRIES = 'DATALAYER_ENTRIES';
 
     const SOURCE_FROM_CONTENT_SCRIPT = 'DLE_SOURCE_FROM_CONTENT_SCRIPT';
     const SOURCE_FROM_INIT = 'DLE_SOURCE_FROM_INIT';
 
     // Taken from "popup.js"
     const EVENT_GET_DATALAYER_STATUS = 'GET_DATALAYER_STATUS';
-    const EVENT_GET_DATALAYER_ENTRIES = 'GET_DATALAYER_ENTRIES';
+    const EVENT_GET_DATALAYER_PAGES_ENTRIES = 'GET_DATALAYER_PAGES_ENTRIES';
 
-    // Originally this used to be in "background.js", but as the state
-    // is no longer persistant due to being a Service Worker, it should
-    // be kept in the "contentScript.js", as it's only need for the lifetime
-    // of the page
+    const EVENT_DATALAYER_ENTRIES = 'DATALAYER_ENTRIES';
+    const PAGES_ENTRIES_STORAGE_KEY = '__DLE_PAGES_ENTRIES_V0__';
 
-    /* eslint-disable sort-keys-fix/sort-keys-fix */
     const state = {
+        config: await sendToBackground(EVENT_LOAD_CONFIG),
         status: EVENT_DATALAYER_LOADING,
-        entries: [],
-    };
-    /* eslint-enable sort-keys-fix/sort-keys-fix */
 
-    registerHandlerFromPopup(async (req) => {
-        switch (req.event) {
-            case EVENT_GET_DATALAYER_STATUS:
-                return {
-                    status: state.status,
-                };
-            case EVENT_GET_DATALAYER_ENTRIES:
-                return {
-                    entries: JSON.stringify(state.entries),
-                };
-            default:
-                return undefined;
-        }
-    });
+        /* eslint-disable sort-keys-fix/sort-keys-fix */
+        currPage: {
+            id: crypto.randomUUID(),
+            entries: [],
+            url: window.location.href,
+            updatedAtMs: Date.now(),
+        },
+        /* eslint-enable sort-keys-fix/sort-keys-fix */
+    };
 
     // Defer sending the count and status to the "background.js", if multiple entries are being pushed
     // in a short timeframe.
     // This is to limit the affect on the site's performance
     const deferSendStatusToBackground = debounce(() => {
         sendToBackground(EVENT_SYNC_DATALAYER_STATUS, {
-            count: state.entries.length,
+            count: state.currPage.entries.length,
             status: state.status,
         });
     }, 256);
+
+    // Defer storing the pages entries, if multiple entries are being pushed in a short timeframe.
+    // This is to limit the affect on the site's performance
+    const deferStorePagesEntries = debounce(() => {
+        if (state.config.maxPages > 0) {
+            storePagesEntries();
+        }
+    }, 256);
+
+    registerHandlerFromPopup(async (req) => {
+        switch (req.event) {
+            case EVENT_SYNC_CONFIG:
+                state.config = req.data;
+                if (state.config.maxPages > 0) {
+                    storePagesEntries();
+                } else {
+                    removePagesEntries();
+                }
+                return undefined;
+            case EVENT_GET_DATALAYER_STATUS:
+                return {
+                    status: state.status,
+                };
+            case EVENT_GET_DATALAYER_PAGES_ENTRIES:
+                if (state.config.maxPages === 0) {
+                    return getDefaultPageEntries();
+                }
+                return getPagesEntries();
+            default:
+                return undefined;
+        }
+    });
 
     registerHandler(SOURCE_FROM_CONTENT_SCRIPT, SOURCE_FROM_INIT, async (event, data) => {
         switch (event) {
@@ -60,8 +87,12 @@
                 return true;
             case EVENT_DATALAYER_ENTRIES: {
                 const entries = JSON.parse(data);
-                state.entries.push(...entries);
+                state.currPage.entries.push(...entries);
+                state.currPage.updatedAtMs = Date.now();
+
                 deferSendStatusToBackground();
+                deferStorePagesEntries();
+
                 return true;
             }
         }
@@ -76,6 +107,47 @@
     }, 250);
     loadScript(chrome.runtime.getURL('init.js'));
 
+    function getDefaultPageEntries() {
+        /* eslint-disable sort-keys-fix/sort-keys-fix */
+        return {
+            pages: [state.currPage],
+            maxEntries: state.config.maxPages,
+            updatedAtMs: Date.now(),
+        };
+        /* eslint-enable sort-keys-fix/sort-keys-fix */
+    }
+
+    function getPagesEntries() {
+        const res = localStorage.getItem(PAGES_ENTRIES_STORAGE_KEY);
+        if (!res) {
+            return getDefaultPageEntries();
+        }
+        return JSON.parse(res);
+    }
+
+    function storePagesEntries() {
+        const pagesEntries = getPagesEntries();
+        pagesEntries.updatedAtMs = Date.now();
+
+        const currPage = pagesEntries.pages.at(-1);
+        if (currPage.id === state.currPage.id) {
+            // Do not use ".with()", as it's OK to mutate the current pages array
+            const idx = pagesEntries.pages.length - 1;
+            pagesEntries.pages[idx] = state.currPage;
+        } else {
+            // Delete the oldest page entry, if the maximum limit has been reached
+            if (pagesEntries.pages.length === pagesEntries.maxEntries) {
+                pagesEntries.pages.shift();
+            }
+            pagesEntries.pages.push(state.currPage);
+        }
+        localStorage.setItem(PAGES_ENTRIES_STORAGE_KEY, JSON.stringify(pagesEntries));
+    }
+
+    function removePagesEntries() {
+        localStorage.removeItem(PAGES_ENTRIES_STORAGE_KEY);
+    }
+
     // Utils
 
     function loadScript(src) {
@@ -86,12 +158,28 @@
 
     // Shared utils
 
-    function debounce(afterFn, delay) {
+    function debounce(fn, delay) {
         let timerId = 0;
         return (...args) => {
             clearTimeout(timerId);
-            timerId = setTimeout(() => afterFn(...args), delay);
+            timerId = setTimeout(() => {
+                try {
+                    fn(...args);
+                } catch (err) {
+                    // NOTE: Don't log as a warning, as this will show up in the Chrome extension's error listing
+                    console.info(MODULE, err instanceof Error ? err.message : 'An unexpected error occurred');
+                }
+            }, delay);
         };
+    }
+
+    async function sendToBackground(event, data = undefined) {
+        /* eslint-disable sort-keys-fix/sort-keys-fix */
+        return chrome.runtime.sendMessage({
+            event,
+            data,
+        });
+        /* eslint-enable sort-keys-fix/sort-keys-fix */
     }
 
     // A utility function for supporting async/await in "onMessage".
@@ -111,16 +199,6 @@
             // See URL: https://developer.chrome.com/docs/extensions/reference/runtime/#event-onMessage
             return true;
         });
-    }
-
-    async function sendToBackground(event, data = undefined) {
-        /* eslint-disable sort-keys-fix/sort-keys-fix */
-
-        return chrome.runtime.sendMessage({
-            event,
-            data,
-        });
-        /* eslint-enable sort-keys-fix/sort-keys-fix */
     }
 
     function registerHandler(source, target, listenerFn) {

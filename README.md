@@ -4,8 +4,14 @@
 </div>
 <br />
 
-**dataLayer Explorer** is a powerful Chrome extension designed to simplify the analysis of a site's analytics layers for developers and digital marketers. It supports both [Google Analytics 4 (GA4)](https://support.google.com/analytics/answer/10089681) and [Matomo](https://matomo.org) by detecting events pushed to the page — specifically `window.dataLayer` (used by GA4 and other tools) and `window._mtm` (Matomo).
-This application provides real-time insights into those events, enabling users to effortlessly monitor and inspect event data for informed decision-making.
+**dataLayer Explorer** is a Chrome extension that helps you monitor and debug analytics tracking on websites. It works with [Google Analytics 4 (GA4)](https://support.google.com/analytics/answer/10089681) and [Matomo](https://matomo.org) by capturing tracking events as they happen on the page.
+
+The extension monitors two key analytics objects:
+
+- `window.dataLayer` - used by Google Analytics 4 and other analytics tools
+- `window._mtm` - used by Matomo analytics
+
+All events are displayed in real-time so you can verify your tracking implementation and troubleshoot issues.
 
 <div align="center">
     <img src="./images/app1.png" alt="Extension screenshot">
@@ -13,13 +19,17 @@ This application provides real-time insights into those events, enabling users t
 
 ## Features
 
-- **Access detailed data effortlessly** View a comprehensive list of events (both GA4 and Matomo), each expandable to reveal rich, detailed information. The intuitive interface allows for quick navigation through events, ensuring important insights are easily accessible.
-- **Identify dataLayer events quickly** A visual indicator <img src="./src/icons/ga4.svg" width="16" height="16" /> marks events detected from `window.dataLayer` (used by GA4 and other tools), making it simpler to focus on relevant data.
-- **Identify Matomo events quickly** A visual indicator <img src="./src/icons/matomo.svg" width="16" height="16" /> marks events detected from `window._mtm` ([Matomo](https://matomo.org)).
-- **Facilitate sharing** The "Copy" function enables easy copying of event details to the clipboard for quick access or sharing with team members, streamlining collaboration.
-- **Analyze event timing precisely** Gain insights into the time elapsed between page load and each event push by simply hovering over the event name. This feature enables detailed analysis of event timing, contributing to a deeper understanding of site performance and user experience. Such precise timing information can be invaluable for optimizing page load sequences and improving overall site responsiveness.
-- **Stay updated with ease** The extension features a refresh button that allows users to update the events list manually, ensuring access to the latest data whenever needed.
-- **Open Source advantage** This extension is open source, allowing users to benefit from community-driven development and transparency. By being open source, it ensures that anyone can contribute to its improvement, fostering innovation and responsiveness to user needs.
+- **View tracking events** See all analytics events captured on the page. Click any event to expand and view the complete data being sent to your analytics platform.
+- **Track multiple pages** Monitor events across multiple browser tabs at once (up to 32 pages). Perfect for testing multi-page user journeys.
+- **Identify event sources** Each event shows an icon indicating whether it came from Google Analytics (<img src="./src/icons/ga4.svg" width="16" height="16" />) or Matomo (<img src="./src/icons/matomo.svg" width="16" height="16" />).
+- **Copy event data** Quickly copy event details to share with your team or include in documentation and bug reports.
+- **Check event timing** Hover over any event to see exactly when it fired after the page loaded. Useful for understanding the tracking sequence.
+- **Search and filter** Find specific events by searching for event names, parameters, or values.
+- **Dark mode** Switch between light and dark themes to match your preference.
+- **View formats** Choose between JSON format (for developers) or table format (easier to read for non-technical users).
+- **Customize settings** Control how many pages to track, choose your preferred view format, and select your theme.
+- **Refresh on demand** Update the event list without reloading the page to see the latest tracking activity.
+- **Open source** The code is publicly available on GitHub for transparency and community contributions.
 
 ## Supported systems
 
@@ -34,10 +44,12 @@ This application provides real-time insights into those events, enabling users t
 
 This extension is built with simplicity and transparency in mind. The source code is written in vanilla JavaScript and utilizes Chrome APIs directly, without the use of bundlers or frameworks. This approach ensures that the code you see in the repository is identical to what is deployed to the Chrome Web Store, facilitating easier review, modification, and understanding of the extension's functionality.
 
-- `background.js`: Serves as the extension's service worker, responsible for updating the browser icon based on whether the page exposes analytics layers. The extension checks for both `window.dataLayer` and `window._mtm` (Matomo) on the currently viewed site.
-- `popup.html` / `popup.js`: Provides the user interface for debugging and interacting with detected analytics events.
-- `contentScript.js`: Facilitates communication between `background.js` and `popup.html`, detecting when analytics layers are present and relaying events pushed to them.
-- `init.js`: Loaded/injected into the page by `contentScript.js`, this script captures events that live on the page’s `window` and forwards them. It listens for pushes made to `window.dataLayer` (e.g. `dataLayer.push(...)`) and to `window._mtm` (e.g. `_mtm.push(...)`) because content scripts cannot directly access page JavaScript objects.
+- `background.js`: Service worker that updates the browser icon based on whether the page exposes analytics layers. Checks for both `window.dataLayer` and `window._mtm` (Matomo). Also manages extension configuration stored in local storage.
+- `popup.html` / `popup.js`: User interface for viewing and interacting with detected analytics events. Includes settings panel for configuring page tracking, format mode, and theme.
+- `contentScript.js`: Facilitates communication between `background.js` and `popup.html`. Detects analytics layers and manages multi-page event tracking using localStorage (tracks events per site origin across multiple tabs).
+- `init.js`: Injected into the page by `contentScript.js`. Captures events from `window.dataLayer` and `window._mtm` and forwards them to the content script.
+- `formatters.js`: Utilities for formatting event data as JSON with syntax highlighting or as column-style tables.
+- `utils.js`: Shared utility functions for DOM manipulation, string operations, array/object handling, and time formatting.
 
 ### Setup
 
@@ -45,7 +57,7 @@ Install the extension from the [./src](./src) directory as an unpacked extension
 
 ### popup.html / popup.js
 
-The extension provides a streamlined development process for the popup interface by utilizing a development server. When the `ENVIRONMENT` constant is set to `development` (which is done by the server), this setup allows developers to work without relying on Chrome APIs and instead uses simulated event data in place of actual page events. The simulated data includes examples for both `window.dataLayer` and `window._mtm` (Matomo), so you can test the UI and both event types without loading an actual site.
+The extension provides a development server for working on the popup interface. When the `ENVIRONMENT` constant is set to `development` (done automatically by the server), you can work without Chrome APIs using simulated event data that includes examples for both `window.dataLayer` and `window._mtm` (Matomo).
 
 #### Setup
 
@@ -67,15 +79,15 @@ npm install
 npm run start
 ```
 
-4. Navigate to http://localhost:8100.
+4. Navigate to:
+    - `http://localhost:8100` - Popup development interface
+    - `http://localhost:8100/examples` - Example events page
 
 5. Start editing `popup.html` / `popup.js` in the [./src](./src) directory.
 
 ## Contributing
 
-If you encounter a bug while using the extension, please file an issue to report it. Suggestions for improvements are also welcome—feel free to submit an issue outlining your ideas. Additionally, if you'd like to contribute directly, you can provide enhancements through a merge request.
-
-Your contributions help improve the extension and benefit the entire community.
+If you encounter a bug, please file an issue to report it. Suggestions for improvements are also welcome. You can also contribute directly through a pull request.
 
 ## Acknowledgements
 

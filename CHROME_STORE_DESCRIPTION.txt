@@ -1,25 +1,36 @@
-dataLayer Explorer provides real-time insights into analytics pushes, enabling users to effortlessly monitor and inspect event data for informed decision-making.
+dataLayer Explorer helps you monitor and debug analytics tracking in real-time. See exactly what data is being sent to Google Analytics 4 and Matomo as users interact with your website.
 
 Website: https://github.com/softwarespot/dataLayer-explorer
 
-Access detailed data effortlessly
-View a comprehensive list of events (events pushed to window.dataLayer and Matomo), each expandable to reveal full event payloads and metadata. The intuitive interface allows for quick navigation through events so important insights are easily accessible.
+What's New in 0.8.0
+- Multi-page tracking: Monitor events across multiple browser tabs simultaneously (up to 32 pages) - great for testing user journeys
+- Dark mode: Choose between light and dark themes
+- View formats: Switch between JSON format (for developers) and table format (easier to read)
+- Settings panel: Customize how the extension works with easy-to-use controls
 
-Identify events quickly
-Visual badges mark the source of each event — events pushed to `window.dataLayer` (e.g. Google Analytics or other systems that use dataLayer) or Matomo (from `window._mtm`) — making it simpler to focus on relevant data.
+Features
 
-Facilitate sharing
-The "Copy" function enables easy copying of event details to the clipboard for quick access or sharing with team members, streamlining collaboration and reporting.
+View tracking events
+See all analytics events captured on your page. Click any event to view the complete data being sent to your analytics platform.
 
-Analyze event timing precisely
-Hover an event to see the time elapsed since page load. This helps diagnose when events fire during the page lifecycle and supports troubleshooting and optimization.
+Identify event sources
+Each event displays an icon showing whether it came from Google Analytics or Matomo, making it easy to understand your tracking setup.
 
-Stay updated with ease
-A refresh button lets you manually update the events list to pick up newly pushed events without reloading the page.
+Copy and share
+Quickly copy event details to share with developers, include in bug reports, or add to documentation.
 
-Supported systems
-- Events pushed to window.dataLayer (e.g. Google Analytics 4 and other tools that push to dataLayer).
-- Matomo — events pushed to window._mtm (Matomo).
+Check timing
+Hover over any event to see exactly when it fired after the page loaded. This helps verify your tracking sequence and troubleshoot issues.
+
+Refresh on demand
+Update the event list without reloading the page to see the latest tracking activity.
+
+Search and filter
+Find specific events by searching for event names, parameters, or values in your tracking data.
+
+What it tracks
+- Google Analytics 4 events (and other tools that use dataLayer)
+- Matomo analytics events
 
 Open Source advantage
 This extension is open source, allowing users to benefit from community-driven development and transparency. By being open source, it ensures that anyone can contribute to its improvement, fostering innovation and responsiveness to user needs.

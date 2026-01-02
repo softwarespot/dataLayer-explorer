@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>dataLayer Explorer - Example Events</title>
+    </head>
+
+    <body>
+        <h1>dataLayer Explorer - Example Events</h1>
+        <p>
+            This page automatically pushes events to <code>window.dataLayer</code> (Google Analytics 4) and
+            <code>window._mtm</code> (Matomo). Open the extension to see the events appear in real-time.
+        </p>
+        <script>
+            window.dataLayer = [];
+            window._mtm = [];
+
+            const events = [
+                {
+                    name: 'dataLayer',
+                    delay: 0,
+                    data: {
+                        event: 'page_view',
+                        page_title: 'dataLayer Explorer - Example Events',
+                        page_location: window.location.href,
+                        page_path: window.location.pathname,
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 0,
+                    data: {
+                        event: 'view_item',
+                        ecommerce: {
+                            currency: 'USD',
+                            value: 29.99,
+                            items: [
+                                {
+                                    item_id: 'SKU_12345',
+                                    item_name: 'Premium Widget',
+                                    item_brand: 'WidgetCo',
+                                    item_category: 'Electronics',
+                                    item_variant: 'Blue',
+                                    price: 29.99,
+                                    quantity: 1,
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 0,
+                    data: {
+                        event: 'add_to_cart',
+                        ecommerce: {
+                            currency: 'USD',
+                            value: 29.99,
+                            items: [
+                                {
+                                    item_id: 'SKU_12345',
+                                    item_name: 'Premium Widget',
+                                    item_brand: 'WidgetCo',
+                                    item_category: 'Electronics',
+                                    price: 29.99,
+                                    quantity: 1,
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: '_mtm',
+                    delay: 0,
+                    data: {
+                        'mtm.pageView': {
+                            title: 'dataLayer Explorer - Example Events',
+                            url: window.location.href,
+                        },
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 0,
+                    data: {
+                        event: 'select_item',
+                        ecommerce: {
+                            item_list_id: 'featured_products',
+                            item_list_name: 'Featured Products',
+                            items: [
+                                {
+                                    item_id: 'SKU_12345',
+                                    item_name: 'Premium Widget',
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: '_mtm',
+                    delay: 0,
+                    data: {
+                        'mtm.event': {
+                            category: 'Ecommerce',
+                            action: 'Product View',
+                            name: 'Premium Widget',
+                            value: 29.99,
+                        },
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 0,
+                    data: {
+                        event: 'view_promotion',
+                        ecommerce: {
+                            creative_name: 'summer_banner',
+                            creative_slot: 'hero_banner',
+                            promotion_id: 'SUMMER2026',
+                            promotion_name: 'Summer Sale',
+                            items: [
+                                {
+                                    item_id: 'SKU_12345',
+                                    item_name: 'Premium Widget',
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 700,
+                    data: {
+                        event: 'begin_checkout',
+                        ecommerce: {
+                            currency: 'USD',
+                            value: 59.98,
+                            items: [
+                                {
+                                    item_id: 'SKU_12345',
+                                    item_name: 'Premium Widget',
+                                    price: 29.99,
+                                    quantity: 2,
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: '_mtm',
+                    delay: 800,
+                    data: {
+                        'mtm.ecommerceCartUpdate': {
+                            products: [
+                                {
+                                    sku: 'SKU_12345',
+                                    name: 'Premium Widget',
+                                    price: 29.99,
+                                    quantity: 2,
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 900,
+                    data: {
+                        event: 'purchase',
+                        ecommerce: {
+                            transaction_id: 'T_' + Date.now(),
+                            currency: 'USD',
+                            value: 64.98,
+                            tax: 5.0,
+                            shipping: 0,
+                            items: [
+                                {
+                                    item_id: 'SKU_12345',
+                                    item_name: 'Premium Widget',
+                                    price: 29.99,
+                                    quantity: 2,
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: '_mtm',
+                    delay: 1000,
+                    data: {
+                        'mtm.ecommerceOrder': {
+                            orderId: 'T_' + Date.now(),
+                            revenue: 64.98,
+                            tax: 5.0,
+                            shipping: 0,
+                            products: [
+                                {
+                                    sku: 'SKU_12345',
+                                    name: 'Premium Widget',
+                                    price: 29.99,
+                                    quantity: 2,
+                                },
+                            ],
+                        },
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 1700,
+                    data: {
+                        event: 'search',
+                        search_term: 'premium widgets',
+                    },
+                },
+                {
+                    name: '_mtm',
+                    delay: 1200,
+                    data: {
+                        'mtm.event': {
+                            category: 'User',
+                            action: 'Login',
+                            name: 'email',
+                        },
+                    },
+                },
+                {
+                    name: 'dataLayer',
+                    delay: 2000,
+                    data: {
+                        event: 'login',
+                        method: 'email',
+                    },
+                },
+            ];
+            for (const event of events) {
+                if (event.delay === 0) {
+                    window[event.name].push(event.data);
+                } else {
+                    setTimeout(() => {
+                        window[event.name].push(event.data);
+                    }, event.delay);
+                }
+            }
+        </script>
+    </body>
+</html>

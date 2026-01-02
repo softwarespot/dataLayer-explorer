@@ -22,16 +22,59 @@
                 <button id="expand-all-btn" class="btn" title="Expand all events.">&#65291;</button>
                 <button id="collapse-all-btn" class="btn" title="Collapse all events.">&#65293;</button>
                 <button id="refresh-btn" class="btn" title="Refresh the dataLayer events list.">&#10227;</button>
+                <button id="settings-toggle-btn" class="btn" title="Toggle settings panel.">&#9881;</button>
             </div>
         </header>
 
+        <div id="settings-panel" class="hide">
+            <div class="settings-header">
+                <span class="settings-title">Settings</span>
+                <button id="settings-close-btn" class="btn" title="Close settings panel.">&#10005;</button>
+            </div>
+            <div class="settings-body">
+                <label class="setting-label">
+                    <span>Maximum number of pages to track:</span>
+                    <select id="max-pages-select" class="setting-select">
+                        <option value="0">Disabled</option>
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="8">8</option>
+                        <option value="16">16</option>
+                        <option value="32">32</option>
+                    </select>
+                </label>
+                <label class="setting-label">
+                    <span>Event format:</span>
+                    <select id="format-mode-select" class="setting-select">
+                        <option value="json">JSON</option>
+                        <option value="column">Column</option>
+                    </select>
+                </label>
+                <label class="setting-label">
+                    <span>Theme:</span>
+                    <select id="theme-mode-select" class="setting-select">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+
         <main>
             <div id="events-status" class="hide">No events were found.</div>
-            <div id="status">Checking if dataLayer is available on this page...</div>
+            <div id="status">Checking if dataLayer is on this page...</div>
             <div id="events-container" class="hide"></div>
         </main>
 
         <!-- Templates -->
+        <template id="page-header-template">
+            <div class="page-header show" title="Click to collapse/expand events for this page.">
+                <span class="page-header-toggle">▼</span>
+                <a class="page-header-url" href="" target="_blank" rel="noopener noreferrer"></a>
+                <span class="page-header-time"></span>
+            </div>
+        </template>
+
         <template id="event-template">
             <div class="event" data-event="">
                 <div class="event-name" title="">
@@ -43,6 +86,9 @@
                     <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">
                         &#128203;
                     </button>
+                    <button class="event-format-toggle-btn btn" title="Toggle between JSON and column format.">
+                        &#9776;
+                    </button>
                     <button
                         class="eye-icon event-advanced-info-btn btn"
                         title="Display advanced information about the event."
@@ -52,7 +98,7 @@
                 </div>
             </div>
             <div class="event-content">
-                <pre class="event-json"></pre>
+                <pre class="event-data"></pre>
                 <div class="event-advanced-info">
                     <hr />
                     <h2>Advanced information</h2>
