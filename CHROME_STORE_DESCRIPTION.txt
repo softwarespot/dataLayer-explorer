@@ -2,13 +2,13 @@ dataLayer Explorer helps you monitor and debug analytics tracking in real-time. 
 
 Website: https://github.com/softwarespot/dataLayer-explorer
 
-What's New
-- Clear button: Quickly remove all tracked pages and events with a single click.
+What's new in v0.9.0
 - Page-specific copy: Copy events from individual pages without copying everything.
 - Page insights: View detailed information about each page including event count and visit time.
+- Clear button: Quickly remove all tracked pages and events with a single click.
 - Enhanced interface: Improved layout and controls for better usability.
 
-What's New in 0.8.0
+What's new in v0.8.0
 - Multi-page tracking: Monitor events across multiple browser tabs simultaneously (up to 32 pages) - great for testing user journeys
 - Dark mode: Choose between light and dark themes
 - View formats: Switch between JSON format (for developers) and table format (easier to read)
