@@ -844,7 +844,7 @@ function getEventIconElement(entry) {
                 return undefined;
             }
 
-            const eventInfo = GA.getEventInfo(entry.event);
+            const eventInfo = GA.getEventInfo(entry.event.event);
             if (!isObject(eventInfo)) {
                 return undefined;
             }
