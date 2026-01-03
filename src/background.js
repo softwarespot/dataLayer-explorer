@@ -11,10 +11,8 @@ const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
 const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
 const EVENT_SYNC_DATALAYER_STATUS = 'SYNC_DATALAYER_STATUS';
 
-// const FORMAT_MODE_COLUMN = 'column';
 const FORMAT_MODE_JSON = 'json';
 
-// const THEME_MODE_DARK = 'dark';
 const THEME_MODE_LIGHT = 'light';
 
 // From "popup.js" or "contentScript.js"
