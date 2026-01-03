@@ -1,3 +1,5 @@
+/* eslint-disable sonarjs/cognitive-complexity */
+
 // DOM utilities
 
 export function addEventListener(el, eventName, selector, fn) {
@@ -94,24 +96,24 @@ export function flatten(obj, depth = Infinity, seen = new WeakSet()) {
     seen.add(obj);
 
     const flattened = [];
-    forEach(obj, (value, keyOrIndex) => {
+    for (const [value, keyOrIndex] of iterator(obj)) {
         if (!isObject(value)) {
             flattened.push([[keyOrIndex], value]);
-            return;
+            continue;
         }
 
         // Array
         if (Array.isArray(value)) {
             if (value.length === 0) {
                 flattened.push([[keyOrIndex], []]);
-                return;
+                continue;
             }
 
-            forEach(value, (item, index) => {
+            for (const [item, index] of iterator(value)) {
                 const itemKeyOrIndex = [keyOrIndex, index];
                 if (!isObject(item)) {
                     flattened.push([itemKeyOrIndex, item]);
-                    return;
+                    continue;
                 }
 
                 const innerFlattened = flatten(item, depth - 1, seen);
@@ -119,14 +121,14 @@ export function flatten(obj, depth = Infinity, seen = new WeakSet()) {
                     return [itemKeyOrIndex.concat(subKey), subValue];
                 });
                 flattened.push(...innerFlattenedMapped);
-            });
-            return;
+            }
+            continue;
         }
 
         // Object
         if (isObjectEmpty(value)) {
             flattened.push([[keyOrIndex], {}]);
-            return;
+            continue;
         }
 
         const innerFlattened = flatten(value, depth - 1, seen);
@@ -134,7 +136,7 @@ export function flatten(obj, depth = Infinity, seen = new WeakSet()) {
             return [[keyOrIndex].concat(subKey), subValue];
         });
         flattened.push(...mappedInnerFlattened);
-    });
+    }
 
     // Remove the current object from the set of seen objects before returning
     seen.delete(obj);
@@ -166,13 +168,11 @@ export function flattenKeys(keys) {
     return res;
 }
 
-export function forEach(obj, fn) {
+function* iterator(obj) {
     // Array
     if (Array.isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
-            if (fn(obj[i], i, obj) === false) {
-                break;
-            }
+            yield [obj[i], i, obj];
         }
         return;
     }
@@ -180,9 +180,7 @@ export function forEach(obj, fn) {
     // Object
     for (const key in obj) {
         if (Object.hasOwn(obj, key)) {
-            if (fn(obj[key], key, obj) === false) {
-                break;
-            }
+            yield [obj[key], key, obj];
         }
     }
 }
