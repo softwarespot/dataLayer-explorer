@@ -1,6 +1,6 @@
 {
     "name": "dataLayer Explorer",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "manifest_version": 3,
     "description": "dataLayer Explorer is designed to simplify the analysis of a site's dataLayer for developers and digital marketers.",
     "icons": {
