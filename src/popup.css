@@ -114,6 +114,14 @@ pre {
     transform: translateY(2px);
 }
 
+.event-btns .eye-icon {
+    color: var(--event-text);
+}
+
+.page-header-btns .eye-icon {
+    color: var(--text-secondary);
+}
+
 /* Header styles */
 #header {
     align-items: center;
@@ -217,6 +225,36 @@ pre {
     outline: none;
 }
 
+.setting-control-group {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.setting-btn {
+    background-color: var(--primary-color);
+    border: 1.5px solid var(--primary-light-color);
+    border-radius: 4px;
+    color: var(--light-text-color);
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    padding: 4px 12px;
+    transition:
+        background-color 0.3s,
+        box-shadow 0.3s;
+}
+
+.setting-btn:hover {
+    background-color: var(--primary-light-color);
+}
+
+.setting-btn:focus {
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    outline: none;
+}
+
 /* Form styles */
 #search,
 .setting-select {
@@ -294,14 +332,6 @@ pre {
 
 .page-header:not(.show) .page-header-toggle {
     transform: rotate(-90deg);
-}
-
-.page-header:not(.show)~.event {
-    display: none;
-}
-
-.page-header:not(.show)~.event+.event-content {
-    display: none;
 }
 
 .page-header-title,
@@ -387,11 +417,17 @@ pre {
     border-top: 5px solid var(--secondary-color);
 }
 
-.event.show+.event-content {
+.event.show + .event-content {
     display: block;
 }
 
-.event.hide+.event-content {
+.event.hide + .event-content {
+    display: none;
+}
+
+/* Page collapsed state must come after .show/.hide rules to take precedence via CSS cascade */
+.event.page-collapsed,
+.event.page-collapsed + .event-content {
     display: none;
 }
 
@@ -494,7 +530,6 @@ pre {
 
 /* Animations */
 @keyframes click-animation {
-
     0%,
     100% {
         transform: scale(1);

@@ -37,6 +37,7 @@ const THEME_MODE_LIGHT = 'light';
 // Taken from "contentScript.js"
 const EVENT_GET_DATALAYER_STATUS = 'GET_DATALAYER_STATUS';
 const EVENT_GET_DATALAYER_PAGES_ENTRIES = 'GET_DATALAYER_PAGES_ENTRIES';
+const EVENT_REMOVE_DATALAYER_PAGES_ENTRIES = 'REMOVE_DATALAYER_PAGES_ENTRIES';
 
 /* eslint-disable sort-keys-fix/sort-keys-fix */
 const state = {
@@ -51,6 +52,7 @@ const state = {
         settingsPanel: document.getElementById('settings-panel'),
         settingsCloseBtn: document.getElementById('settings-close-btn'),
         maxPagesSelect: document.getElementById('max-pages-select'),
+        clearPagesBtn: document.getElementById('clear-pages-btn'),
         formatModeSelect: document.getElementById('format-mode-select'),
         themeModeSelect: document.getElementById('theme-mode-select'),
         eventsStatus: document.getElementById('events-status'),
@@ -141,16 +143,19 @@ addEventListener(document, 'DOMContentLoaded', async () => {
 
     addEventListener(state.dom.refreshBtn, 'click', async (_, targetEl) => {
         animate(targetEl);
+
         await syncDataLayerRefreshPagesEntries();
     });
 
     addEventListener(state.dom.settingsToggleBtn, 'click', (_, targetEl) => {
         animate(targetEl);
+
         state.dom.settingsPanel.classList.toggle('hide');
     });
 
     addEventListener(state.dom.settingsCloseBtn, 'click', (_, targetEl) => {
         animate(targetEl);
+
         state.dom.settingsPanel.classList.add('hide');
     });
 
@@ -159,6 +164,13 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         await syncConfig({
             maxPages,
         });
+        await syncDataLayerRefreshPagesEntries();
+    });
+
+    addEventListener(state.dom.clearPagesBtn, 'click', async (_, targetEl) => {
+        animate(targetEl);
+
+        await sendToContentScript(EVENT_REMOVE_DATALAYER_PAGES_ENTRIES);
         await syncDataLayerRefreshPagesEntries();
     });
 
@@ -189,6 +201,11 @@ addEventListener(document, 'DOMContentLoaded', async () => {
 
         const pageId = pageHeaderEl.getAttribute('data-page-id');
         state.expanded.pageHeaders.set(pageId, expanded);
+
+        const eventEls = state.dom.eventsContainer.querySelectorAll(`.event[data-page-id="${pageId}"]`);
+        for (const eventEl of eventEls) {
+            eventEl.classList.toggle('page-collapsed', !expanded);
+        }
     });
 
     addEventListener(document, 'click', '.page-header-copy-btn', (_, targetEl) => {
@@ -583,20 +600,21 @@ async function syncDataLayerPagesEntries() {
     for (; state.currPageIndex < pagesEntries.pages.length; state.currPageIndex += 1) {
         const isCurrPage = state.currPageIndex === currPageIndex;
         if (!hasMaxPagesLimit && !isCurrPage) {
+            // Skip showing older pages when there is no max pages limit
             continue;
         }
 
         const page = pagesEntries.pages[state.currPageIndex];
-        const entries = page.entries;
 
-        for (; state.currEntriesIndex < entries.length; state.currEntriesIndex += 1) {
-            const entry = entries[state.currEntriesIndex];
+        for (; state.currEntriesIndex < page.entries.length; state.currEntriesIndex += 1) {
+            const entry = page.entries[state.currEntriesIndex];
             const entryIdx = state.currEntriesIndex + 1;
 
-            const eventFragment = createEventElement(page, entry, entryIdx);
-            state.dom.eventsContainer.insertBefore(eventFragment, state.dom.eventsContainer.firstChild);
+            const eventEl = createEventElement(page, entry, entryIdx);
+            state.dom.eventsContainer.insertBefore(eventEl, state.dom.eventsContainer.firstChild);
         }
 
+        // Reset entries index for the next page
         if (!isCurrPage) {
             state.currEntriesIndex = 0;
 
@@ -760,6 +778,11 @@ function createEventElement(page, entry, entryIdx) {
     eventEl.className = 'event';
     if (entry.event?.event === 'gtm.historyChange-v2') {
         eventEl.classList.add('page-change');
+    }
+
+    const pageHeaderExpanded = state.expanded.pageHeaders.get(page.id) ?? true;
+    if (!pageHeaderExpanded) {
+        eventEl.classList.add('page-collapsed');
     }
 
     const eventExpanded = state.expanded.entryIds.get(entry.id) ?? state.config.expandAll;

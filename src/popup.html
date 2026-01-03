@@ -1,149 +1,170 @@
 <!doctype html>
 <html>
+    <head>
+        <meta charset="utf-8" />
+        <title>dataLayer Explorer</title>
+        <link rel="stylesheet" href="popup.css" />
+    </head>
 
-<head>
-    <meta charset="utf-8" />
-    <title>dataLayer Explorer</title>
-    <link rel="stylesheet" href="popup.css" />
-</head>
-
-<body>
-    <header id="header">
-        <div id="header-search">
-            <div id="header-title">
-                <img id="icon" src="./icons/icon32.png" alt="dataLayer Explorer icon" />
-                dataLayer Explorer
+    <body>
+        <header id="header">
+            <div id="header-search">
+                <div id="header-title">
+                    <img id="icon" src="./icons/icon32.png" alt="dataLayer Explorer icon" />
+                    dataLayer Explorer
+                </div>
+                <input id="search" class="hide" type="search" placeholder="Search events..." />
             </div>
-            <input id="search" class="hide" type="search" placeholder="Search events..." />
-        </div>
-        <div id="header-btns" class="hide">
-            <button id="copy-all-btn" class="btn" title="Copy the dataLayer events to the clipboard.">
-                &#128203;
-            </button>
-            <button id="expand-all-btn" class="btn" title="Expand all events.">&#65291;</button>
-            <button id="collapse-all-btn" class="btn" title="Collapse all events.">&#65293;</button>
-            <button id="refresh-btn" class="btn" title="Refresh the dataLayer events list.">&#10227;</button>
-            <button id="settings-toggle-btn" class="btn" title="Toggle settings panel.">&#9881;</button>
-        </div>
-    </header>
-
-    <div id="settings-panel" class="hide">
-        <div class="settings-header">
-            <span class="settings-title">Settings</span>
-            <button id="settings-close-btn" class="btn" title="Close settings panel.">&#10005;</button>
-        </div>
-        <div class="settings-body">
-            <label class="setting-label">
-                <span>Maximum number of pages to track:</span>
-                <select id="max-pages-select" class="setting-select">
-                    <option value="0">Disabled</option>
-                    <option value="2">2</option>
-                    <option value="4">4</option>
-                    <option value="8">8</option>
-                    <option value="16">16</option>
-                    <option value="32">32</option>
-                </select>
-            </label>
-            <label class="setting-label">
-                <span>Event format:</span>
-                <select id="format-mode-select" class="setting-select">
-                    <option value="json">JSON</option>
-                    <option value="column">Column</option>
-                </select>
-            </label>
-            <label class="setting-label">
-                <span>Theme:</span>
-                <select id="theme-mode-select" class="setting-select">
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                </select>
-            </label>
-        </div>
-    </div>
-
-    <main>
-        <div id="events-status" class="hide">No events were found.</div>
-        <div id="status">Checking if dataLayer is on this page...</div>
-        <div id="events-container" class="hide"></div>
-    </main>
-
-    <!-- Templates -->
-    <template id="page-header-template">
-        <div class="page-header show">
-            <div class="page-header-title" title="Click to collapse/expand events for this page.">
-                <span class="page-header-toggle">▼</span>
-                <a class="page-header-url" href="" target="_blank" rel="noopener noreferrer"></a>
-                <span class="page-header-time"></span>
-            </div>
-            <div class="page-header-btns">
-                <button class="page-header-copy-btn btn" title="Copy events from this page to the clipboard.">
+            <div id="header-btns" class="hide">
+                <button id="copy-all-btn" class="btn" title="Copy the dataLayer events to the clipboard.">
                     &#128203;
                 </button>
-                <button class="eye-icon page-header-advanced-info-btn btn"
-                    title="Display advanced information about the page.">
-                    &#128065;
-                </button>
+                <button id="expand-all-btn" class="btn" title="Expand all events.">&#65291;</button>
+                <button id="collapse-all-btn" class="btn" title="Collapse all events.">&#65293;</button>
+                <button id="refresh-btn" class="btn" title="Refresh the dataLayer events list.">&#10227;</button>
+                <button id="settings-toggle-btn" class="btn" title="Toggle settings panel.">&#9881;</button>
             </div>
-        </div>
-        <div class="page-header-advanced-info">
-            <p class="page-header-details">
-                The page has <strong class="page-header-event-count"></strong> <span
-                    class="page-header-event-label"></span> and
-                was visited <span class="page-header-loaded-time"></span>.
-            </p>
-        </div>
-    </template>
+        </header>
 
-    <template id="event-template">
-        <div class="event" data-event="">
-            <div class="event-name" title="">
-                <span class="event-index"></span>
-                <span class="event-name-text"></span>
+        <div id="settings-panel" class="hide">
+            <div class="settings-header">
+                <span class="settings-title">Settings</span>
+                <button id="settings-close-btn" class="btn" title="Close settings panel.">&#10005;</button>
             </div>
-            <div class="event-btns">
-                <div class="event-icon-container"></div>
-                <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">
-                    &#128203;
-                </button>
-                <button class="event-format-toggle-btn btn" title="Toggle between JSON and column format.">
-                    &#9776;
-                </button>
-                <button class="eye-icon event-advanced-info-btn btn"
-                    title="Display advanced information about the event.">
-                    &#128065;
-                </button>
+            <div class="settings-body">
+                <label class="setting-label">
+                    <span>Maximum number of pages to track:</span>
+                    <div class="setting-control-group">
+                        <select id="max-pages-select" class="setting-select">
+                            <option value="0">Disabled</option>
+                            <option value="2">2</option>
+                            <option value="4">4</option>
+                            <option value="8">8</option>
+                            <option value="16">16</option>
+                            <option value="32">32</option>
+                        </select>
+                        <button
+                            id="clear-pages-btn"
+                            class="btn setting-btn"
+                            title="Clear all tracked pages and events."
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </label>
+                <label class="setting-label">
+                    <span>Event format:</span>
+                    <select id="format-mode-select" class="setting-select">
+                        <option value="json">JSON</option>
+                        <option value="column">Column</option>
+                    </select>
+                </label>
+                <label class="setting-label">
+                    <span>Theme:</span>
+                    <select id="theme-mode-select" class="setting-select">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </label>
             </div>
         </div>
-        <div class="event-content">
-            <pre class="event-data"></pre>
-            <div class="event-advanced-info">
-                <hr />
-                <h2>Advanced information</h2>
-                <p class="event-details">
-                    The event was sent <span class="event-after-load-time"></span> after the initial page load and
-                    was pushed to <code class="event-pushed-to"></code>.
+
+        <main>
+            <div id="events-status" class="hide">No events were found.</div>
+            <div id="status">Checking if dataLayer is on this page...</div>
+            <div id="events-container" class="hide"></div>
+        </main>
+
+        <!-- Templates -->
+        <template id="page-header-template">
+            <div class="page-header show">
+                <div class="page-header-title" title="Click to collapse/expand events for this page.">
+                    <span class="page-header-toggle">▼</span>
+                    <a class="page-header-url" href="" target="_blank" rel="noopener noreferrer"></a>
+                    <span class="page-header-time"></span>
+                </div>
+                <div class="page-header-btns">
+                    <button class="page-header-copy-btn btn" title="Copy events from this page to the clipboard.">
+                        &#128203;
+                    </button>
+                    <button
+                        class="eye-icon page-header-advanced-info-btn btn"
+                        title="Display advanced information about the page."
+                    >
+                        &#128065;
+                    </button>
+                </div>
+            </div>
+            <div class="page-header-advanced-info">
+                <p class="page-header-details">
+                    The page has <strong class="page-header-event-count"></strong>
+                    <span class="page-header-event-label"></span> and was visited
+                    <span class="page-header-loaded-time"></span>.
                 </p>
-                <h3>Stack trace</h3>
-                <pre class="event-trace" style="font-size: 1em"></pre>
             </div>
-        </div>
-    </template>
+        </template>
 
-    <template id="ga4-icon-template">
-        <a href="" class="btn" title="This is a Google Analytics 4 (GA4) event." target="_blank"
-            rel="noopener noreferrer">
-            <img src="./icons/ga4.svg" class="ga4-icon" />
-        </a>
-    </template>
+        <template id="event-template">
+            <div class="event" data-event="">
+                <div class="event-name" title="">
+                    <span class="event-index"></span>
+                    <span class="event-name-text"></span>
+                </div>
+                <div class="event-btns">
+                    <div class="event-icon-container"></div>
+                    <button class="event-copy-btn btn" title="Copy the dataLayer event to the clipboard.">
+                        &#128203;
+                    </button>
+                    <button class="event-format-toggle-btn btn" title="Toggle between JSON and column format.">
+                        &#9776;
+                    </button>
+                    <button
+                        class="eye-icon event-advanced-info-btn btn"
+                        title="Display advanced information about the event."
+                    >
+                        &#128065;
+                    </button>
+                </div>
+            </div>
+            <div class="event-content">
+                <pre class="event-data"></pre>
+                <div class="event-advanced-info">
+                    <hr />
+                    <h2>Advanced information</h2>
+                    <p class="event-details">
+                        The event was sent <span class="event-after-load-time"></span> after the initial page load and
+                        was pushed to <code class="event-pushed-to"></code>.
+                    </p>
+                    <h3>Stack trace</h3>
+                    <pre class="event-trace" style="font-size: 1em"></pre>
+                </div>
+            </div>
+        </template>
 
-    <template id="matomo-icon-template">
-        <a href="https://developer.matomo.org/" class="btn" title="This is a Matomo event." target="_blank"
-            rel="noopener noreferrer">
-            <img src="./icons/matomo.svg" class="matomo-icon" />
-        </a>
-    </template>
-</body>
+        <template id="ga4-icon-template">
+            <a
+                href=""
+                class="btn"
+                title="This is a Google Analytics 4 (GA4) event."
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <img src="./icons/ga4.svg" class="ga4-icon" />
+            </a>
+        </template>
 
-<script src="popup.js" type="module"></script>
+        <template id="matomo-icon-template">
+            <a
+                href="https://developer.matomo.org/"
+                class="btn"
+                title="This is a Matomo event."
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <img src="./icons/matomo.svg" class="matomo-icon" />
+            </a>
+        </template>
+    </body>
 
+    <script src="popup.js" type="module"></script>
 </html>

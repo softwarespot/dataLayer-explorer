@@ -30,7 +30,6 @@
             });
         });
 
-        console.log(MODULE, '"init.js" has initialized, dataLayer is available');
         sendToContentScript(EVENT_DATALAYER_FOUND);
     } catch (err) {
         sendToContentScript(EVENT_DATALAYER_NOT_FOUND);

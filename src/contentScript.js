@@ -18,6 +18,7 @@
     // Taken from "popup.js"
     const EVENT_GET_DATALAYER_STATUS = 'GET_DATALAYER_STATUS';
     const EVENT_GET_DATALAYER_PAGES_ENTRIES = 'GET_DATALAYER_PAGES_ENTRIES';
+    const EVENT_REMOVE_DATALAYER_PAGES_ENTRIES = 'REMOVE_DATALAYER_PAGES_ENTRIES';
 
     const EVENT_DATALAYER_ENTRIES = 'DATALAYER_ENTRIES';
     const PAGES_ENTRIES_STORAGE_KEY = '__DLE_PAGES_ENTRIES_V0__';
@@ -73,6 +74,9 @@
                     return getDefaultPageEntries();
                 }
                 return getPagesEntries();
+            case EVENT_REMOVE_DATALAYER_PAGES_ENTRIES:
+                removePagesEntries();
+                return true;
             default:
                 return undefined;
         }
