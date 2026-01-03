@@ -79,10 +79,6 @@ pre {
     display: none !important;
 }
 
-.page-collapsed {
-    display: none !important;
-}
-
 /* Button styles */
 .btn {
     background: none;
@@ -97,25 +93,21 @@ pre {
 .ga4-icon,
 .matomo-icon,
 .eye-icon,
+.page-copy-btn,
 .event-copy-btn,
 .event-format-toggle-btn {
-    width: 16px;
-    height: 19px;
-    display: inline-flex;
     align-items: center;
+    color: var(--event-text);
+    display: inline-flex;
+    height: 19px;
     justify-content: center;
     vertical-align: middle;
+    width: 16px;
 }
 
 .ga4-icon,
 .matomo-icon {
     object-fit: contain;
-}
-
-.eye-icon,
-.event-copy-btn,
-.event-format-toggle-btn {
-    color: var(--event-text);
 }
 
 .eye-icon {
@@ -226,7 +218,8 @@ pre {
 }
 
 /* Form styles */
-#search {
+#search,
+.setting-select {
     background-color: var(--bg-color);
     border: 1.5px solid var(--primary-light-color);
     color: var(--text-color);
@@ -234,10 +227,21 @@ pre {
     transition:
         border-color 0.3s,
         box-shadow 0.3s;
+}
+
+#search {
     width: 100%;
 }
 
-#search:focus {
+.setting-select {
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 4px 8px;
+}
+
+#search:focus,
+.setting-select:focus {
     border-color: var(--primary-light-color);
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
     outline: none;
@@ -255,22 +259,17 @@ pre {
     font-weight: bold;
 }
 
-/* Event styles */
+/* Page header styles */
 .page-header {
-    align-items: center;
     background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     border-left: 4px solid var(--primary-color);
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
     display: flex;
-    font-size: 0.85em;
+    font-size: 1.2em;
     font-weight: 600;
-    gap: 10px;
     margin: 15px 0 8px 0;
-    padding: 10px 14px;
     position: relative;
-    user-select: none;
 }
 
 .page-header::before {
@@ -293,6 +292,39 @@ pre {
     margin-top: 0;
 }
 
+.page-header:not(.show) .page-header-toggle {
+    transform: rotate(-90deg);
+}
+
+.page-header:not(.show) ~ .event {
+    display: none;
+}
+
+.page-header:not(.show) ~ .event + .event-content {
+    display: none;
+}
+
+.page-header-title,
+.page-header-btns {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.page-header-title {
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+    padding: 10px 14px;
+    user-select: none;
+}
+
+.page-header-btns {
+    flex-shrink: 0;
+    gap: 4px;
+    padding: 10px 8px 10px 0;
+}
+
 .page-header-toggle {
     color: var(--primary-color);
     flex-shrink: 0;
@@ -300,14 +332,11 @@ pre {
     transition: transform 0.2s ease;
 }
 
-.page-header:not(.show) .page-header-toggle {
-    transform: rotate(-90deg);
-}
-
 .page-header-url {
     color: var(--text-color);
+    flex: 1;
     font-weight: 700;
-    max-width: 65%;
+    min-width: 0;
     overflow: hidden;
     pointer-events: auto;
     text-decoration: none;
@@ -318,7 +347,6 @@ pre {
 
 .page-header-url:hover {
     color: var(--primary-color);
-    text-decoration: none;
 }
 
 .page-header-time {
@@ -329,6 +357,7 @@ pre {
     margin-left: auto;
 }
 
+/* Event styles */
 .event {
     align-items: center;
     background-color: var(--event-bg);
@@ -345,12 +374,30 @@ pre {
     border-top: 5px solid var(--secondary-color);
 }
 
-.event-name {
+.event.show + .event-content {
+    display: block;
+}
+
+.event.hide + .event-content {
+    display: none;
+}
+
+.event-name,
+.event-btns {
     align-items: center;
-    cursor: pointer;
     display: flex;
-    flex-grow: 1;
     padding: 5px;
+}
+
+.event-name {
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+}
+
+.event-btns {
+    flex-shrink: 0;
+    gap: 5px;
 }
 
 .event-index {
@@ -361,13 +408,6 @@ pre {
     padding: 2.5px;
 }
 
-.event-btns {
-    align-items: center;
-    display: flex;
-    gap: 5px;
-    padding: 5px;
-}
-
 .event-content {
     background-color: var(--event-content-bg);
     border-left: 2.5px solid var(--primary-color);
@@ -375,14 +415,6 @@ pre {
     display: none;
     margin-bottom: 2.5px;
     padding: 10px 15px;
-}
-
-.event.show + .event-content {
-    display: block;
-}
-
-.event.hide + .event-content {
-    display: none;
 }
 
 .event-advanced-info {

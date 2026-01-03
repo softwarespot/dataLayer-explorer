@@ -68,10 +68,17 @@
 
         <!-- Templates -->
         <template id="page-header-template">
-            <div class="page-header show" title="Click to collapse/expand events for this page.">
-                <span class="page-header-toggle">▼</span>
-                <a class="page-header-url" href="" target="_blank" rel="noopener noreferrer"></a>
-                <span class="page-header-time"></span>
+            <div class="page-header show">
+                <div class="page-header-title" title="Click to collapse/expand events for this page.">
+                    <span class="page-header-toggle">▼</span>
+                    <a class="page-header-url" href="" target="_blank" rel="noopener noreferrer"></a>
+                    <span class="page-header-time"></span>
+                </div>
+                <div class="page-header-btns">
+                    <button class="page-copy-btn btn" title="Copy events from this page to the clipboard.">
+                        &#128203;
+                    </button>
+                </div>
             </div>
         </template>
 

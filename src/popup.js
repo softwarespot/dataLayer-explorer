@@ -123,32 +123,9 @@ addEventListener(document, 'DOMContentLoaded', async () => {
     });
 
     addEventListener(state.dom.copyAllBtn, 'click', (_, targetEl) => {
-        const idxByPageId = new Map();
-        const pages = [];
         const eventEls = state.dom.eventsContainer.querySelectorAll('.event');
-        for (const eventEl of eventEls) {
-            const pageId = eventEl.getAttribute('data-page-id');
-            if (!idxByPageId.has(pageId)) {
-                const pageIdx = pages.length;
-                idxByPageId.set(pageId, pageIdx);
-
-                const pageURL = safeDecode(eventEl.getAttribute('data-page-url'));
-
-                /* eslint-disable sort-keys-fix/sort-keys-fix */
-                pages[pageIdx] = {
-                    url: pageURL,
-                    events: [],
-                };
-                /* eslint-enable sort-keys-fix/sort-keys-fix */
-            }
-
-            const { parsed: eventData } = getEventDataFromElement(eventEl);
-
-            const pageIdx = idxByPageId.get(pageId);
-            pages[pageIdx].events.push(eventData);
-        }
-
-        if (copyToClipboard(JSON.stringify(pages, undefined, 2))) {
+        const pagesData = getPagesDataFromEventElements(eventEls);
+        if (copyToClipboard(JSON.stringify(pagesData, undefined, 2))) {
             animate(targetEl);
         }
     });
@@ -200,21 +177,26 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         });
     });
 
-    addEventListener(document, 'click', '.page-header', (_, targetEl) => {
-        // Skip toggling, when clicking the URL
+    addEventListener(document, 'click', '.page-header-title', (_, targetEl) => {
+        // Skip toggling when clicking the URL
         if (targetEl.matches('.page-header-url') || targetEl.closest('.page-header-url')) {
             return;
         }
 
-        const expanded = targetEl.classList.toggle('show');
-        const collapsed = !expanded;
+        const pageHeaderEl = targetEl.closest('.page-header');
+        const expanded = pageHeaderEl.classList.toggle('show');
 
-        const pageId = targetEl.getAttribute('data-page-id');
+        const pageId = pageHeaderEl.getAttribute('data-page-id');
         state.expanded.pageHeaders.set(pageId, expanded);
+    });
 
+    addEventListener(document, 'click', '.page-copy-btn', (_, targetEl) => {
+        const pageHeaderEl = targetEl.closest('.page-header');
+        const pageId = pageHeaderEl.getAttribute('data-page-id');
         const eventEls = state.dom.eventsContainer.querySelectorAll(`.event[data-page-id="${pageId}"]`);
-        for (const eventEl of eventEls) {
-            eventEl.classList.toggle('page-collapsed', collapsed);
+        const pagesData = getPagesDataFromEventElements(eventEls);
+        if (copyToClipboard(JSON.stringify(pagesData, undefined, 2))) {
+            animate(targetEl);
         }
     });
 
@@ -674,7 +656,35 @@ function isMatch(str, query) {
     return str.includes(query);
 }
 
-// DOM creation functions
+// DOM functions
+
+function getPagesDataFromEventElements(eventEls) {
+    const idxByPageId = new Map();
+    const pages = [];
+
+    for (const eventEl of eventEls) {
+        const pageId = eventEl.getAttribute('data-page-id');
+        if (!idxByPageId.has(pageId)) {
+            const pageIdx = pages.length;
+            idxByPageId.set(pageId, pageIdx);
+
+            const pageURL = safeDecode(eventEl.getAttribute('data-page-url'));
+
+            /* eslint-disable sort-keys-fix/sort-keys-fix */
+            pages[pageIdx] = {
+                url: pageURL,
+                events: [],
+            };
+            /* eslint-enable sort-keys-fix/sort-keys-fix */
+        }
+
+        const pageIdx = idxByPageId.get(pageId);
+        const { parsed: eventData } = getEventDataFromElement(eventEl);
+        pages[pageIdx].events.push(eventData);
+    }
+
+    return pages;
+}
 
 function getEventDataFromElement(eventEl) {
     const eventDecoded = safeDecode(eventEl.getAttribute('data-entry-event'));
@@ -736,11 +746,6 @@ function createEventElement(page, entry, entryIdx) {
     const eventExpanded = state.expanded.entryIds.get(entry.id) ?? state.config.expandAll;
     if (eventExpanded) {
         eventEl.classList.add('show');
-    }
-
-    const pageHeaderExpanded = state.expanded.pageHeaders.get(page.id) ?? true;
-    if (!pageHeaderExpanded) {
-        eventEl.classList.add('page-collapsed');
     }
 
     const eventNameEl = fragment.querySelector('.event-name');
