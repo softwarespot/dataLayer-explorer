@@ -63,9 +63,10 @@ const state = {
     syncCheckerTimerId: 0,
     emptySyncCounts: 0,
     expanded: {
+        pageHeaders: new Map(),
+        pageAdvancedInfoIds: new Map(),
         entryIds: new Map(),
         advancedInfoEntryIds: new Map(),
-        pageHeaders: new Map(),
     },
     formatModes: {
         entryIds: new Map(),
@@ -190,7 +191,7 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         state.expanded.pageHeaders.set(pageId, expanded);
     });
 
-    addEventListener(document, 'click', '.page-copy-btn', (_, targetEl) => {
+    addEventListener(document, 'click', '.page-header-copy-btn', (_, targetEl) => {
         const pageHeaderEl = targetEl.closest('.page-header');
         const pageId = pageHeaderEl.getAttribute('data-page-id');
         const eventEls = state.dom.eventsContainer.querySelectorAll(`.event[data-page-id="${pageId}"]`);
@@ -198,6 +199,15 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         if (copyToClipboard(JSON.stringify(pagesData, undefined, 2))) {
             animate(targetEl);
         }
+    });
+
+    addEventListener(document, 'click', '.page-header-advanced-info-btn', (_, targetEl) => {
+        animate(targetEl);
+
+        const pageHeaderEl = targetEl.closest('.page-header');
+        const isExpanded = pageHeaderEl.nextElementSibling.classList.toggle('show');
+        const pageId = pageHeaderEl.getAttribute('data-page-id');
+        state.expanded.pageAdvancedInfoIds.set(pageId, isExpanded);
     });
 
     addEventListener(document, 'click', '.event-name', (_, targetEl) => {
@@ -590,7 +600,7 @@ async function syncDataLayerPagesEntries() {
         if (!isCurrPage) {
             state.currEntriesIndex = 0;
 
-            const headerEl = createEventHeaderElement(page);
+            const headerEl = createPageHeaderElement(page);
             state.dom.eventsContainer.insertBefore(headerEl, state.dom.eventsContainer.firstChild);
         }
     }
@@ -702,7 +712,7 @@ function renderEventData(eventDataEl, event, strEvent, formatMode) {
     }
 }
 
-function createEventHeaderElement(page) {
+function createPageHeaderElement(page) {
     const template = document.getElementById('page-header-template');
     const fragment = template.content.cloneNode(true);
 
@@ -721,6 +731,15 @@ function createEventHeaderElement(page) {
 
     const timeEl = fragment.querySelector('.page-header-time');
     timeEl.textContent = toHumanTimeStringMs(page.updatedAtMs);
+
+    const pageAdvancedInfoEl = fragment.querySelector('.page-header-advanced-info');
+    const pageAdvancedInfoExpanded = state.expanded.pageAdvancedInfoIds.get(page.id) ?? false;
+    pageAdvancedInfoEl.classList.toggle('show', pageAdvancedInfoExpanded);
+
+    const eventCount = page.entries?.length ?? 0;
+    fragment.querySelector('.page-header-event-count').textContent = eventCount;
+    fragment.querySelector('.page-header-event-label').textContent = eventCount === 1 ? 'event' : 'events';
+    fragment.querySelector('.page-header-loaded-time').textContent = toHumanTimeStringMs(page.updatedAtMs);
 
     return fragment;
 }
@@ -772,8 +791,8 @@ function createEventElement(page, entry, entryIdx) {
     const eventAdvancedInfoExpanded = state.expanded.advancedInfoEntryIds.get(entry.id) ?? false;
     eventAdvancedInfoEl.classList.toggle('show', eventAdvancedInfoExpanded);
 
-    fragment.querySelector('.event-details').innerHTML =
-        `The event was sent ${strAfterPageLoadMs} after the initial page load and was pushed to <code>window.${entry.name}</code>.`;
+    fragment.querySelector('.event-after-load-time').textContent = strAfterPageLoadMs;
+    fragment.querySelector('.event-pushed-to').textContent = `window.${entry.name}`;
     fragment.querySelector('.event-trace').textContent = entry.trace;
 
     return fragment;
