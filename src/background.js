@@ -27,6 +27,7 @@ registerHandlerFromPopup(async (req, sender) => {
                 themeMode: 'light',
             };
             /* eslint-enable sort-keys-fix/sort-keys-fix */
+
             const res = await chrome.storage.local.get(['config']);
             if (!isObject(res.config)) {
                 return defaultConfig;
