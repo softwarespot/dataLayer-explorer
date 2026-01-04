@@ -692,50 +692,6 @@ function isMatch(str, query) {
 
 // DOM functions
 
-function getPagesDataFromEventElements(eventEls) {
-    const idxByPageId = new Map();
-    const pages = [];
-
-    for (const eventEl of eventEls) {
-        const pageId = eventEl.getAttribute('data-page-id');
-        if (!idxByPageId.has(pageId)) {
-            const pageIdx = pages.length;
-            idxByPageId.set(pageId, pageIdx);
-
-            const pageURL = safeDecode(eventEl.getAttribute('data-page-url'));
-
-            /* eslint-disable sort-keys-fix/sort-keys-fix */
-            pages[pageIdx] = {
-                url: pageURL,
-                events: [],
-            };
-            /* eslint-enable sort-keys-fix/sort-keys-fix */
-        }
-
-        const pageIdx = idxByPageId.get(pageId);
-        const { parsed: eventData } = getEventDataFromElement(eventEl);
-        pages[pageIdx].events.push(eventData);
-    }
-
-    return pages;
-}
-
-function getEventDataFromElement(eventEl) {
-    const eventDecoded = safeDecode(eventEl.getAttribute('data-entry-event'));
-    return {
-        decoded: eventDecoded,
-        parsed: JSON.parse(eventDecoded),
-    };
-}
-
-function renderEventData(eventDataEl, event, strEvent, formatMode) {
-    if (formatMode === FORMAT_MODE_COLUMN) {
-        eventDataEl.innerHTML = formatAsColumn(event);
-    } else {
-        eventDataEl.innerHTML = formatAsJSON(strEvent);
-    }
-}
-
 function createPageHeaderElement(page) {
     const template = document.getElementById('page-header-template');
     const fragment = template.content.cloneNode(true);
@@ -827,6 +783,14 @@ function createEventElement(page, entry, entryIdx) {
     return fragment;
 }
 
+function renderEventData(eventDataEl, event, strEvent, formatMode) {
+    if (formatMode === FORMAT_MODE_COLUMN) {
+        eventDataEl.innerHTML = formatAsColumn(event);
+    } else {
+        eventDataEl.innerHTML = formatAsJSON(strEvent);
+    }
+}
+
 function getEventName(obj) {
     if (!isObject(obj)) {
         return 'unknown data';
@@ -869,4 +833,40 @@ function getEventIconElement(entry) {
         default:
             return undefined;
     }
+}
+
+function getPagesDataFromEventElements(eventEls) {
+    const idxByPageId = new Map();
+    const pages = [];
+
+    for (const eventEl of eventEls) {
+        const pageId = eventEl.getAttribute('data-page-id');
+        if (!idxByPageId.has(pageId)) {
+            const pageIdx = pages.length;
+            idxByPageId.set(pageId, pageIdx);
+
+            const pageURL = safeDecode(eventEl.getAttribute('data-page-url'));
+
+            /* eslint-disable sort-keys-fix/sort-keys-fix */
+            pages[pageIdx] = {
+                url: pageURL,
+                events: [],
+            };
+            /* eslint-enable sort-keys-fix/sort-keys-fix */
+        }
+
+        const pageIdx = idxByPageId.get(pageId);
+        const { parsed: eventData } = getEventDataFromElement(eventEl);
+        pages[pageIdx].events.push(eventData);
+    }
+
+    return pages;
+}
+
+function getEventDataFromElement(eventEl) {
+    const eventDecoded = safeDecode(eventEl.getAttribute('data-entry-event'));
+    return {
+        decoded: eventDecoded,
+        parsed: JSON.parse(eventDecoded),
+    };
 }
