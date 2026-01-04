@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
-
 // DOM utilities
 
 export function addEventListener(el, eventName, selector, fn) {
@@ -81,6 +79,7 @@ export function truncate(str, maxLen, prefix = '...') {
 
 // Array/Object utilities
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function flatten(obj, depth = Infinity, seen = new WeakSet()) {
     // Return primitive values as-is
     if (!isObject(obj) || depth <= 0) {

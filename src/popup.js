@@ -197,7 +197,7 @@ addEventListener(document, 'DOMContentLoaded', async () => {
     });
 
     addEventListener(document, 'click', '.page-header-title', (_, targetEl) => {
-        // Skip toggling when clicking the URL
+        // Skip toggling when clicking the URL element
         if (targetEl.matches('.page-header-url') || targetEl.closest('.page-header-url')) {
             return;
         }
@@ -228,21 +228,20 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         animate(targetEl);
 
         const pageHeaderEl = targetEl.closest('.page-header');
-        const isExpanded = pageHeaderEl.nextElementSibling.classList.toggle('show');
+        const expanded = pageHeaderEl.nextElementSibling.classList.toggle('show');
         const pageId = pageHeaderEl.getAttribute('data-page-id');
-        state.expanded.pageAdvancedInfoIds.set(pageId, isExpanded);
+        state.expanded.pageAdvancedInfoIds.set(pageId, expanded);
     });
 
     addEventListener(document, 'click', '.event-name', (_, targetEl) => {
         const eventEl = targetEl.closest('.event');
-        const shouldExpand = !eventEl.classList.contains('show');
-        updatePageEntriesExpandOrCollapse([eventEl], shouldExpand);
+        const expanded = !eventEl.classList.contains('show');
+        updatePageEntriesExpandOrCollapse([eventEl], expanded);
     });
 
     addEventListener(document, 'click', '.event-copy-btn', (_, targetEl) => {
         const eventEl = targetEl.closest('.event');
-        const { decoded: eventDecoded } = getEventDataFromElement(eventEl);
-        if (copyToClipboard(eventDecoded)) {
+        if (copyToClipboard(getDecodedEventFromElement(eventEl))) {
             animate(targetEl);
         }
     });
@@ -251,15 +250,16 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         animate(targetEl);
 
         const eventEl = targetEl.closest('.event');
-        const entryId = eventEl.getAttribute('data-entry-id');
-        const { decoded: eventDecoded, parsed: eventData } = getEventDataFromElement(eventEl);
+        const eventDataEl = eventEl.nextElementSibling.querySelector('.event-data');
+        const eventData = getEventDataFromElement(eventEl);
+        const eventDecoded = getDecodedEventFromElement(eventEl);
 
+        const entryId = eventEl.getAttribute('data-entry-id');
         const currFormat = state.formatModes.entryIds.get(entryId) ?? state.config.formatMode;
         const toggledFormat = currFormat === FORMAT_MODE_JSON ? FORMAT_MODE_COLUMN : FORMAT_MODE_JSON;
         state.formatModes.entryIds.set(entryId, toggledFormat);
 
-        const eventDataEl = eventEl.nextElementSibling.querySelector('.event-data');
-        renderEventData(eventDataEl, eventData, eventDecoded, toggledFormat);
+        renderFormattedEvent(eventDataEl, eventData, eventDecoded, toggledFormat);
     });
 
     addEventListener(document, 'click', '.event-advanced-info-btn', (_, targetEl) => {
@@ -268,10 +268,9 @@ addEventListener(document, 'DOMContentLoaded', async () => {
         const eventEl = targetEl.closest('.event');
         updatePageEntriesExpandOrCollapse([eventEl], true);
 
-        // The event content is the next sibling in the DOM tree
         const eventTraceEl = eventEl.nextElementSibling.querySelector('.event-advanced-info');
-        const isExpanded = eventTraceEl.classList.toggle('show');
         const entryId = eventEl.getAttribute('data-entry-id');
+        const isExpanded = eventTraceEl.classList.toggle('show');
         state.expanded.advancedInfoEntryIds.set(entryId, isExpanded);
     });
 });
@@ -606,7 +605,7 @@ async function syncDataLayerPagesEntries() {
     for (; state.currPageIndex < pagesEntries.pages.length; state.currPageIndex += 1) {
         const isCurrPage = state.currPageIndex === currPageIndex;
         if (!hasMaxPagesLimit && !isCurrPage) {
-            // Skip showing older pages when there is no max pages limit
+            // Skip showing older pages, when there is no max pages limit
             continue;
         }
 
@@ -661,7 +660,7 @@ function syncFilterPageEntries(searchTerm) {
     const matchedPageIds = new Set();
     const eventEls = state.dom.eventsContainer.querySelectorAll('.event');
     for (const eventEl of eventEls) {
-        const { decoded: eventDecoded } = getEventDataFromElement(eventEl);
+        const eventDecoded = getDecodedEventFromElement(eventEl);
         const matches = isMatch(eventDecoded, searchTerm);
         eventEl.classList.toggle('hide', !matches);
 
@@ -676,7 +675,8 @@ function syncFilterPageEntries(searchTerm) {
         headerEl.classList.toggle('hide', !matchedPageIds.has(pageId));
     }
 
-    state.dom.eventsStatus.classList.toggle('hide', matchedPageIds.size > 0);
+    const hasMatches = matchedPageIds.size > 0;
+    state.dom.eventsStatus.classList.toggle('hide', hasMatches);
 }
 
 function isMatch(str, query) {
@@ -769,7 +769,7 @@ function createEventElement(page, entry, entryIdx) {
 
     const formatMode = state.formatModes.entryIds.get(entry.id) ?? state.config.formatMode;
     const eventDataEl = fragment.querySelector('.event-data');
-    renderEventData(eventDataEl, entry.event, strEvent, formatMode);
+    renderFormattedEvent(eventDataEl, entry.event, strEvent, formatMode);
 
     const eventAdvancedInfoEl = fragment.querySelector('.event-advanced-info');
 
@@ -783,7 +783,7 @@ function createEventElement(page, entry, entryIdx) {
     return fragment;
 }
 
-function renderEventData(eventDataEl, event, strEvent, formatMode) {
+function renderFormattedEvent(eventDataEl, event, strEvent, formatMode) {
     if (formatMode === FORMAT_MODE_COLUMN) {
         eventDataEl.innerHTML = formatAsColumn(event);
     } else {
@@ -856,7 +856,7 @@ function getPagesDataFromEventElements(eventEls) {
         }
 
         const pageIdx = idxByPageId.get(pageId);
-        const { parsed: eventData } = getEventDataFromElement(eventEl);
+        const eventData = getEventDataFromElement(eventEl);
         pages[pageIdx].events.push(eventData);
     }
 
@@ -864,9 +864,10 @@ function getPagesDataFromEventElements(eventEls) {
 }
 
 function getEventDataFromElement(eventEl) {
-    const eventDecoded = safeDecode(eventEl.getAttribute('data-entry-event'));
-    return {
-        decoded: eventDecoded,
-        parsed: JSON.parse(eventDecoded),
-    };
+    const eventDecoded = getDecodedEventFromElement(eventEl);
+    return JSON.parse(eventDecoded);
+}
+
+function getDecodedEventFromElement(eventEl) {
+    return safeDecode(eventEl.getAttribute('data-entry-event'));
 }
