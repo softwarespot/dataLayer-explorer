@@ -163,6 +163,8 @@
 
     // Shared utils
 
+    // IMPORTANt: These have been copied from "extUtils.js" and "utils.js" as "import" statements cannot be used in content scripts
+
     function debounce(fn, delay) {
         let timerId = 0;
         return (...args) => {
@@ -207,7 +209,6 @@
     }
 
     function registerHandler(source, target, listenerFn) {
-        // Create a unique reference
         window.addEventListener('message', async (evt) => {
             if (evt.data.source !== target) {
                 return;

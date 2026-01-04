@@ -295,3 +295,20 @@ export function toHumanTimeStringMs(dt, dtNow = new Date()) {
     }
     return `0 milliseconds ${tense}`;
 }
+
+// Misc utils
+
+export function debounce(fn, delay, moduleName) {
+    let timerId = 0;
+    return (...args) => {
+        clearTimeout(timerId);
+        timerId = setTimeout(() => {
+            try {
+                fn(...args);
+            } catch (err) {
+                // NOTE: Don't log as a warning, as this will show up in the Chrome extension's error listing
+                console.info(moduleName, err instanceof Error ? err.message : 'An unexpected error occurred');
+            }
+        }, delay);
+    };
+}

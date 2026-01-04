@@ -1,10 +1,12 @@
 /* eslint-disable n/no-unsupported-features/node-builtins */
+import { sendToBackground, sendToContentScript } from './extUtils.js';
 import { formatAsColumn, formatAsJSON } from './formatters.js';
 import * as GA from './ga4.js';
 import {
     addEventListener,
     animate,
     copyToClipboard,
+    debounce,
     getFirstFlattenedKey,
     isObject,
     isString,
@@ -114,11 +116,15 @@ addEventListener(document, 'DOMContentLoaded', async () => {
             break;
     }
 
-    const deferSetSearchTerm = debounce(async (searchTerm) => {
-        await syncConfig({
-            searchTerm,
-        });
-    }, 256);
+    const deferSetSearchTerm = debounce(
+        async (searchTerm) => {
+            await syncConfig({
+                searchTerm,
+            });
+        },
+        256,
+        MODULE,
+    );
     addEventListener(state.dom.search, 'input', (_, targetEl) => {
         const searchTerm = targetEl.value;
         deferSetSearchTerm(searchTerm);
@@ -863,43 +869,4 @@ function getEventIconElement(entry) {
         default:
             return undefined;
     }
-}
-
-// Shared utils
-
-function debounce(fn, delay) {
-    let timerId = 0;
-    return (...args) => {
-        clearTimeout(timerId);
-        timerId = setTimeout(() => {
-            try {
-                fn(...args);
-            } catch (err) {
-                // NOTE: Don't log as a warning, as this will show up in the Chrome extension's error listing
-                console.info(MODULE, err instanceof Error ? err.message : 'An unexpected error occurred');
-            }
-        }, delay);
-    };
-}
-
-async function sendToBackground(event, data = undefined) {
-    /* eslint-disable sort-keys-fix/sort-keys-fix */
-    return chrome.runtime.sendMessage({
-        event,
-        data,
-    });
-    /* eslint-enable sort-keys-fix/sort-keys-fix */
-}
-
-async function sendToContentScript(event, data = undefined) {
-    const tab = await getCurrentTab();
-    return chrome.tabs.sendMessage(tab.id, {
-        data,
-        event,
-    });
-}
-
-async function getCurrentTab() {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    return tab;
 }
