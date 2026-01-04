@@ -11,10 +11,6 @@ const EVENT_DATALAYER_FOUND = 'DATALAYER_FOUND';
 const EVENT_DATALAYER_NOT_FOUND = 'DATALAYER_NOT_FOUND';
 const EVENT_SYNC_DATALAYER_STATUS = 'SYNC_DATALAYER_STATUS';
 
-const FORMAT_MODE_JSON = 'json';
-
-const THEME_MODE_LIGHT = 'light';
-
 // From "popup.js" or "contentScript.js"
 registerHandlerFromPopup(async (req, sender) => {
     switch (req.event) {
@@ -24,8 +20,8 @@ registerHandlerFromPopup(async (req, sender) => {
                 searchTerm: '',
                 expandAll: false,
                 maxPages: 0,
-                formatMode: FORMAT_MODE_JSON,
-                themeMode: THEME_MODE_LIGHT,
+                formatMode: 'json',
+                themeMode: 'light',
             };
             /* eslint-enable sort-keys-fix/sort-keys-fix */
             const res = await chrome.storage.local.get(['config']);
@@ -33,11 +29,11 @@ registerHandlerFromPopup(async (req, sender) => {
                 return defaultConfig;
             }
 
-            const cfg = {
+            // Merge the default config with the stored config to ensure all keys are present
+            return {
                 ...defaultConfig,
                 ...res.config,
             };
-            return cfg;
         }
         case EVENT_SYNC_CONFIG:
             await chrome.storage.local.set({
@@ -60,7 +56,7 @@ function syncDataLayerStatus(tab, data) {
             chrome.action.setBadgeBackgroundColor({ color: COLOR_ORANGE, tabId: tab.id });
             chrome.action.setBadgeText({ text: '...', tabId: tab.id });
             chrome.action.setTitle({
-                title: 'Checking if dataLayer is available on this page...',
+                title: 'Checking if dataLayer is on this page...',
                 tabId: tab.id,
             });
             break;
@@ -68,7 +64,7 @@ function syncDataLayerStatus(tab, data) {
             chrome.action.setBadgeBackgroundColor({ color: COLOR_GREEN, tabId: tab.id });
             chrome.action.setBadgeText({ text: String(data.count), tabId: tab.id });
             chrome.action.setTitle({
-                title: 'dataLayer is available on this page.',
+                title: 'dataLayer is on this page.',
                 tabId: tab.id,
             });
             break;
@@ -76,7 +72,7 @@ function syncDataLayerStatus(tab, data) {
             chrome.action.setBadgeBackgroundColor({ color: COLOR_RED, tabId: tab.id });
             chrome.action.setBadgeText({ text: '❌', tabId: tab.id });
             chrome.action.setTitle({
-                title: 'dataLayer is not available on this page.',
+                title: 'dataLayer is not on this page.',
                 tabId: tab.id,
             });
             break;
