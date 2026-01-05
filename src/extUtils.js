@@ -8,16 +8,11 @@ export async function sendToBackground(event, data = undefined) {
 }
 
 export async function sendToContentScript(event, data = undefined) {
-    const tab = await getCurrentTab();
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     return chrome.tabs.sendMessage(tab.id, {
         data,
         event,
     });
-}
-
-async function getCurrentTab() {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    return tab;
 }
 
 // A utility function for supporting async/await in "onMessage".

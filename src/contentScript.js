@@ -88,6 +88,7 @@
             case EVENT_DATALAYER_NOT_FOUND:
                 state.status = event;
                 deferSendStatusToBackground();
+
                 return true;
             case EVENT_DATALAYER_ENTRIES: {
                 const entries = JSON.parse(data);
@@ -163,7 +164,7 @@
 
     // Shared utils
 
-    // IMPORTANt: These have been copied from "extUtils.js" and "utils.js" as "import" statements cannot be used in content scripts
+    // IMPORTANt: These have been copied from "extUtils.js" and "utils.js", as "import" statements cannot be used in content scripts
 
     function debounce(fn, delay) {
         let timerId = 0;
