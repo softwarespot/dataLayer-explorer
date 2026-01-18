@@ -17,8 +17,8 @@
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-import": "^2.32.0",
-        "eslint-plugin-n": "^17.23.1",
-        "eslint-plugin-prettier": "^5.5.4",
+        "eslint-plugin-n": "^17.23.2",
+        "eslint-plugin-prettier": "^5.5.5",
         "eslint-plugin-promise": "^7.2.1",
         "eslint-plugin-security": "^3.0.1",
         "eslint-plugin-simple-import-sort": "^12.1.1",
@@ -27,7 +27,7 @@
         "eslint-plugin-sort-keys-fix": "^1.1.2",
         "eslint-plugin-unicorn": "^62.0.0",
         "globals": "^17.0.0",
-        "prettier": "^3.7.4"
+        "prettier": "^3.8.0"
     },
     "engines": {
         "node": ">=24"
