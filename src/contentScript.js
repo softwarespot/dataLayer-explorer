@@ -164,7 +164,7 @@
 
     // Shared utils
 
-    // IMPORTANt: These have been copied from "extUtils.js" and "utils.js", as "import" statements cannot be used in content scripts
+    // IMPORTANT: These have been copied from "extUtils.js" and "utils.js", as "import" statements cannot be used in content scripts
 
     function debounce(fn, delay) {
         let timerId = 0;
